@@ -1,0 +1,14 @@
+name = "watchlab"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+# The Worker serves /api/* and falls through to the static site for everything
+# else. Deploy the static site to Cloudflare Pages (or any static host) and
+# point the Pages custom domain at the same zone, OR serve the static assets
+# from the Worker itself via an assets binding:
+#
+#   [assets]
+#   directory = "../build"
+#   binding = "ASSETS"
+#
+# then change the final `return fetch(request)` to `return env.ASSETS.fetch(request)`.

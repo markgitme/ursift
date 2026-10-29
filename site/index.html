@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watchlab — a watchlist of questions</title>
+<meta name="description" content="Keep a list of questions you care about. Every time you come back, see what is new about them. Text only, no account, your list is a file you own.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<!-- "relay" for a plain static host. Change to "worker" when the Worker is deployed. -->
+<meta name="watchlab-backend" content="relay">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top__row">
+    <div class="brand">Watchlab <span>working title</span></div>
+
+    <form class="search" id="search-form" role="search">
+      <input class="search__input" id="search-input" type="search" autocomplete="off"
+             placeholder="a question you want to keep an eye on — e.g. btc halving"
+             aria-label="Add a watch">
+      <button class="btn btn--primary" type="submit">Add watch</button>
+    </form>
+  </div>
+
+  <div class="top__tools">
+    <nav class="nav" aria-label="Sections">
+      <button class="nav__btn is-active" data-view="watchlist" type="button">Watchlist</button>
+      <button class="nav__btn" data-view="sources" type="button">Sources</button>
+      <button class="nav__btn" data-view="ignored" type="button">Ignored</button>
+    </nav>
+
+    <label class="field__label" for="period">Period</label>
+    <select id="period" aria-label="Time period"></select>
+
+    <button class="btn btn--ghost" id="refresh-all" type="button">Refresh all</button>
+    <button class="btn btn--ghost" id="export-btn" type="button">Export</button>
+    <button class="btn btn--ghost" id="import-btn" type="button">Import</button>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
+
+    <div class="status" id="status"></div>
+  </div>
+</header>
+
+<main class="main" id="main"></main>
+
+<footer class="foot">
+  <p>
+    Nothing is stored on a server. Your watchlist, your sources, what you have read and what you have ignored
+    live in this browser and in the file you export. No account, no tracking, no feed of your own.
+  </p>
+  <p>
+    Results are pulled from Google News and Bing News. Links resolve to the publisher's own address,
+    not to a search page.
+  </p>
+</footer>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
