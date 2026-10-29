@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.3.1 — 2026-10-29
+- **One relay is probed once per run, not once per watch.** If the network is
+  down, every watch finds out together and fast, instead of each one burning
+  40 seconds rediscovering that the same dead relay is still dead. Measured: 6
+  relay requests for three watches, down from 12.
+- A failed probe is remembered for 60 s, so the next watch fails immediately.
+- A relay that worked and then stopped is forgotten, so the next attempt probes
+  again.
+
+## v0.3.0 — 2026-10-29
+Nothing fetches until you ask for it.
+
+- **No network on page load.** Measured: 0 relay requests on load and on reload.
+  The last result set is kept in localStorage, so a reload shows what was last
+  found without touching the network.
+- **The bundled copy is now a fallback, not a default.** A watch is checked
+  live first; only if the live feed fails do the build-time articles appear, and
+  then they are labelled as a copy with the build date.
+- **Human error copy.** "Could not reach the news feeds" instead of "no CORS
+  relay answered". The relay names sit behind a "technical details" disclosure.
+- **Severity depends on whether there is anything to show.** A failed check with
+  articles on screen is a quiet grey note, not a red banner.
+- **Try again actually retries** — it used to return the same cached data and
+  swallow the error, so it looked broken. It now shows "Checking…" and updates.
+- A watch that has never been checked says so, and offers "⟳ check".
+- A check interrupted by closing the tab no longer leaves a permanent
+  "Checking…" behind.
+
 ## v0.2.0 — 2026-10-29
 The three-state fix, and the samples that are actually yours.
 

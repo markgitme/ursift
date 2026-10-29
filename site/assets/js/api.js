@@ -54,7 +54,7 @@
     { name: 'corsfix', url: function (u) { return 'https://proxy.corsfix.com/?' + u; } }
   ];
 
-  var RELAY_TIMEOUT = 11000;
+  var RELAY_TIMEOUT = 9000;
   var RELAY_COOLDOWN = 15 * 60 * 1000;   // 15 minutes — long enough to stop the bans
 
   // Persisted, so a page reload cannot reset the punishment.
@@ -72,9 +72,9 @@
     return fresh.length ? fresh : list;
   }
 
-  function fetchWithTimeout(url) {
+  function fetchWithTimeout(url, timeoutMs) {
     var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, RELAY_TIMEOUT);
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, timeoutMs || RELAY_TIMEOUT);
     return fetch(url, ctrl ? { signal: ctrl.signal } : undefined).then(function (resp) {
       clearTimeout(timer);
       return resp;
@@ -91,26 +91,36 @@
     return e;
   }
 
-  function fetchViaRelay(url) {
+  // One relay is probed once per session, not once per watch. If the network
+  // is down, every watch fails together and fast instead of each one burning
+  // 40 seconds rediscovering that the same dead relay is still dead.
+  var sessionRelay = null;
+  var probeFailedAt = 0;      // when the last probe failed — so the next watch
+  var PROBE_FAILURE_TTL = 60000;  // does not pay for the same discovery again
+
+  function probeRelays() {
     var attempts = orderedRelays();
+    var deadline = Date.now() + 10000;
     var i = 0;
     var tried = [];
     function next() {
-      if (i >= attempts.length) {
+      if (i >= attempts.length || Date.now() > deadline) {
+        probeFailedAt = Date.now();
         return Promise.reject(feedError('Tried ' + tried.join(', ') + '.'));
       }
       var r = attempts[i++];
       tried.push(r.name);
-      return fetchWithTimeout(r.url(url)).then(function (resp) {
+      var budget = Math.max(2500, deadline - Date.now());
+      return fetchWithTimeout(r.url(gnewsUrl('watchlabprobe')), budget).then(function (resp) {
         if (!resp.ok) throw new Error(r.name + ' returned HTTP ' + resp.status);
         return resp.text();
       }).then(function (txt) {
-        if (!/<item>|<entry/i.test(txt)) throw new Error(r.name + ' returned no feed');
-        // it worked — remember it, and clear its cooldown
+        if (!/<rss|<feed/i.test(txt)) throw new Error(r.name + ' returned no feed');
         saveJson(RELAY_KEY, r.name);
         delete relayFailUntil[r.name];
         saveJson(RELAY_FAIL_KEY, relayFailUntil);
-        return txt;
+        sessionRelay = r.name;
+        return r.name;
       }).catch(function (err) {
         relayFailUntil[r.name] = Date.now() + RELAY_COOLDOWN;
         saveJson(RELAY_FAIL_KEY, relayFailUntil);
@@ -118,6 +128,41 @@
       }).catch(next);
     }
     return next();
+  }
+
+  function ensureRelay() {
+    if (sessionRelay) return Promise.resolve(sessionRelay);
+    // The network was already found to be down moments ago. Do not make every
+    // watch rediscover that on its own.
+    if (probeFailedAt && Date.now() - probeFailedAt < PROBE_FAILURE_TTL) {
+      return Promise.reject(feedError('The relay was unreachable a moment ago.'));
+    }
+    return probeRelays();
+  }
+
+  function relayByName(name) {
+    for (var i = 0; i < RELAYS.length; i++) if (RELAYS[i].name === name) return RELAYS[i];
+    return null;
+  }
+
+  function fetchViaRelay(url) {
+    return ensureRelay().then(function (name) {
+      var r = relayByName(name);
+      return fetchWithTimeout(r.url(url), RELAY_TIMEOUT).then(function (resp) {
+        if (!resp.ok) throw new Error(r.name + ' returned HTTP ' + resp.status);
+        return resp.text();
+      }).then(function (txt) {
+        if (!/<item>|<entry/i.test(txt)) throw new Error(r.name + ' returned no feed');
+        return txt;
+      }).catch(function (err) {
+        // It worked a moment ago and now does not — forget it and let the next
+        // attempt probe again.
+        sessionRelay = null;
+        relayFailUntil[name] = Date.now() + RELAY_COOLDOWN;
+        saveJson(RELAY_FAIL_KEY, relayFailUntil);
+        throw feedError(name + ': ' + ((err && err.message) || err));
+      });
+    });
   }
 
   /* ---------------- helpers ---------------- */
