@@ -397,6 +397,24 @@ select {
 
 /* ---------------- notices ---------------- */
 
+.entry__check {
+  padding: 3px 10px;
+  font-size: .8rem;
+  white-space: nowrap;
+}
+.entry__checking {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: .8rem;
+  margin: 2px 0 6px;
+}
+.entry__checking::after { content: ''; }
+.notice--quiet { border-color: var(--line-2); background: var(--bg-3); }
+.notice--quiet .notice__title { color: var(--ink-2); }
+.notice__details { margin-top: 8px; font-size: .78rem; color: var(--ink-3); }
+.notice__details summary { cursor: pointer; color: var(--ink-3); }
+.notice__details summary:hover { color: var(--ink-2); }
+
 .notice {
   display: block;
   border: 1px solid var(--line-2);

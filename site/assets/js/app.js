@@ -3,10 +3,12 @@
  * The home screen is the watchlist, not a search box. The search bar is how
  * you add a question to the list; the list is what you come back to.
  *
+ * Nothing fetches on page load. A watch is checked when the user asks for it.
+ *
  * Three states must never be confused with each other:
- *   not run yet  ·  the feed came back empty  ·  the feed could not be reached
- * An earlier version showed "no results, press refresh" for all three, which
- * is how a dead network looks like a working product.
+ *   not checked yet  ·  the feed came back empty  ·  the feed could not be reached
+ * An earlier version showed "no results, press refresh" for all three, which is
+ * how a dead network looks like a working product.
  */
 (function () {
   'use strict';
@@ -128,36 +130,29 @@
   function renderStatus() {
     var st = document.getElementById('status');
     clear(st);
+
     var failed = S.state().queries.filter(function (q) {
-      return results[q.id] && results[q.id].error;
+      return results[q.id] && results[q.id].error && !results[q.id].fromSnapshot;
     }).length;
 
     if (failed) {
       st.appendChild(el('span', 'status__err',
-        plural(failed, 'watch') + ' could not be refreshed'));
+        plural(failed, 'watch') + ' could not be checked'));
       st.appendChild(el('span', 'status__sep', '·'));
     }
 
     var b = Api.backend();
-    var label = b === 'worker' ? 'live · your Worker, publisher links'
-      : b === 'relay' ? 'live · public relay'
-        : b === 'snapshot' ? 'bundled snapshot · live feed unreachable'
-          : 'checking…';
-    st.appendChild(el('span', 'status__backend', label));
+    var nq = S.state().queries.length;
+    if (b === 'worker') st.appendChild(el('span', 'status__backend', 'live · your Worker'));
+    else if (b === 'relay') st.appendChild(el('span', 'status__backend', 'live · public relay'));
+    else if (b === 'copy') st.appendChild(el('span', 'status__backend', 'showing a copy of the build'));
+    else if (nq) st.appendChild(el('span', 'status__backend', 'press ⟳ to check a watch'));
 
-    var note = document.getElementById('link-note');
-    if (note) {
-      note.textContent = b === 'worker'
-        ? 'Links resolve to the publisher\'s own address, not to a search page.'
-        : b === 'relay'
-          ? 'This host reaches Google News through a public relay, so links may open via Google before the article.'
-          : b === 'snapshot'
-            ? 'Showing a bundled copy of these results. Deploy the Worker for live, directly-resolved links.'
-            : '';
+    if (nq) st.appendChild(el('span', 'status__sep', '·'));
+    if (nq) {
+      st.appendChild(el('span', '', plural(nq, 'watch', 'watches') +
+        ' · ' + plural(S.state().sources.length, 'source')));
     }
-    st.appendChild(el('span', 'status__sep', '·'));
-    st.appendChild(el('span', '', plural(S.state().queries.length, 'watch', 'watches') +
-      ' · ' + plural(S.state().sources.length, 'source')));
   }
 
   function renderNav() {
@@ -237,7 +232,7 @@
     titleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     titleBtn.appendChild(el('span', 'entry__caret', isOpen ? '▾' : '▸'));
     titleBtn.appendChild(el('span', 'entry__text', q.text));
-    if (res) {
+    if (res && res.items.length) {
       var badge = el('span', 'entry__counts');
       badge.appendChild(el('span', 'count count--new', String(g.today.length)));
       badge.appendChild(el('span', 'count count--unread', String(g.unread.length)));
@@ -266,9 +261,10 @@
     });
     head.appendChild(mode);
 
-    var run = el('button', 'iconbtn', '⟳');
+    var neverChecked = !res || !res.fetchedAt;
+    var run = el('button', neverChecked ? 'btn btn--ghost entry__check' : 'iconbtn', neverChecked ? '⟳ check' : '⟳');
     run.type = 'button';
-    run.title = 'Run this watch now';
+    run.title = neverChecked ? 'Check this watch now' : 'Check this watch again';
     run.addEventListener('click', function () { runQueries([q.id]); });
     head.appendChild(run);
 
@@ -290,44 +286,33 @@
 
     var body = el('div', 'entry__body');
 
-    // State 1 — the feed could not be reached. Say so, and keep what we had.
-    if (res && res.error) {
-      var err = el('div', 'notice notice--error');
-      err.appendChild(el('span', 'notice__title', 'Could not reach the feed'));
-      err.appendChild(el('span', 'notice__body', res.error));
-      if (res.fetchedAt) {
-        err.appendChild(el('span', 'notice__body',
-          'Showing the last results from ' + timeAgo(res.fetchedAt) + '.'));
-      }
-      var retry = el('button', 'btn btn--ghost notice__btn', 'Try again');
-      retry.type = 'button';
-      retry.addEventListener('click', function () { runQueries([q.id]); });
-      err.appendChild(retry);
-      body.appendChild(err);
-      // A failed fetch is not an empty result — never say the feed answered.
-      if (!res.items.length) {
-        body.appendChild(el('p', 'entry__empty', 'Nothing to show yet.'));
-        wrap.appendChild(body);
-        return wrap;
-      }
+    if (res && res.checking) {
+      body.appendChild(el('p', 'entry__checking', 'Checking…'));
     }
 
-    // State 2 — never run.
-    if (!res) {
-      body.appendChild(el('p', 'entry__empty', 'Not run yet — press ⟳ to fetch this watch.'));
+    if (res && res.error) {
+      body.appendChild(renderNotice(q, res));
+    }
+
+    // Not checked yet.
+    if (!res || !res.fetchedAt) {
+      if (!res || !res.checking) {
+        body.appendChild(el('p', 'entry__empty',
+          'Not checked yet — press ⟳ to look for articles on this.'));
+      }
       wrap.appendChild(body);
       return wrap;
     }
 
-    // State 3 — ran fine, nothing matched.
+    // Checked, and the feed answered with nothing.
     if (!res.items.length) {
       body.appendChild(el('p', 'entry__empty',
-        'The feed answered, but nothing matched this query.'));
+        'Checked — but nothing matched this query.'));
       wrap.appendChild(body);
       return wrap;
     }
 
-    // State 4 — ran fine, nothing in the chosen period.
+    // Checked, but nothing falls inside the chosen period.
     if (!g.today.length && !g.unread.length && !g.read.length) {
       body.appendChild(el('p', 'entry__empty',
         'Nothing in this period. Try a wider period in the filter above.'));
@@ -339,12 +324,47 @@
     if (g.unread.length) body.appendChild(renderGroup('Unread', g.unread, q, false, 20));
     if (g.read.length) body.appendChild(renderGroup('Read', g.read, q, true));
 
-    if (res.fetchedAt) {
-      body.appendChild(el('p', 'entry__stamp', 'updated ' + timeAgo(res.fetchedAt)));
-    }
+    body.appendChild(el('p', 'entry__stamp',
+      'checked ' + timeAgo(res.fetchedAt) + (res.fromSnapshot ? ' · copy from the build' : '')));
 
     wrap.appendChild(body);
     return wrap;
+  }
+
+  function renderNotice(q, res) {
+    // Severity depends on whether there is anything to look at. A failed
+    // background check with articles on screen is a footnote, not an alarm.
+    var hasData = !!(res.items && res.items.length);
+    var notice = el('div', 'notice ' + (hasData ? 'notice--quiet' : 'notice--error'));
+
+    if (res.fromSnapshot) {
+      notice.appendChild(el('span', 'notice__title', 'Showing a copy from the build'));
+      notice.appendChild(el('span', 'notice__body',
+        'The live feed could not be reached, so these are the articles saved when the site was built' +
+        (res.bakedAt ? ' (' + new Date(res.bakedAt).toLocaleDateString() + ')' : '') + '.'));
+    } else if (hasData) {
+      notice.appendChild(el('span', 'notice__title', 'Could not check for newer articles'));
+      notice.appendChild(el('span', 'notice__body',
+        'The live feed is unreachable right now — usually temporary. What is below is from your last check.'));
+    } else {
+      notice.appendChild(el('span', 'notice__title', 'Could not reach the news feeds'));
+      notice.appendChild(el('span', 'notice__body',
+        'Your connection may be blocking them, or the service that serves them is having trouble. This is usually temporary.'));
+    }
+
+    var retry = el('button', 'btn btn--ghost notice__btn', 'Try again');
+    retry.type = 'button';
+    retry.addEventListener('click', function () { runQueries([q.id]); });
+    notice.appendChild(retry);
+
+    if (res.error && res.error.detail) {
+      var det = el('details', 'notice__details');
+      det.appendChild(el('summary', null, 'technical details'));
+      det.appendChild(el('span', 'notice__body', res.error.detail));
+      notice.appendChild(det);
+    }
+
+    return notice;
   }
 
   function renderGroup(title, items, q, collapsed, cap) {
@@ -538,12 +558,12 @@
     main.appendChild(wrap);
   }
 
-  /* ---------------- running queries ---------------- */
+  /* ---------------- checking watches ---------------- */
 
   function runQueries(ids) {
     if (busy) {
-      // A refresh is already running. Queue this one instead of dropping it —
-      // otherwise changing a mode mid-refresh looks like it did nothing.
+      // A check is already running. Queue this one instead of dropping it —
+      // otherwise changing a mode mid-check looks like it did nothing.
       queued = true;
       if (!ids) queuedIds = [];
       else ids.forEach(function (i) {
@@ -557,22 +577,41 @@
       : S.state().queries.slice();
     if (!targets.length) { busy = false; render(); return Promise.resolve(); }
 
+    // Mark them all as checking, so the UI can say so straight away.
+    targets.forEach(function (q) {
+      var prev = results[q.id] || {};
+      results[q.id] = { fetchedAt: prev.fetchedAt || null, items: prev.items || [], error: null, checking: true };
+    });
+    render();
+
     var sources = S.sourceDomains();
     var chain = Promise.resolve();
     targets.forEach(function (q) {
       chain = chain.then(function () {
-        return Api.search(q.text, q.mode, sources).then(function (items) {
-          results[q.id] = { fetchedAt: new Date().toISOString(), items: items || [], error: null };
+        return Api.search(q.text, q.mode, sources).then(function (res) {
+          results[q.id] = {
+            fetchedAt: new Date().toISOString(),
+            items: res.items || [],
+            error: res.error || null,
+            fromSnapshot: !!res.fromSnapshot,
+            bakedAt: res.bakedAt || null,
+            checking: false
+          };
           S.setQueryRan(q.id);
           saveResults();
         }).catch(function (e) {
-          // Keep the last good results. A failed refresh must not wipe the list,
+          // Keep the last good results. A failed check must not wipe the list,
           // and it must not look like "this query has no results".
           var prev = results[q.id] || {};
           results[q.id] = {
             fetchedAt: prev.fetchedAt || null,
             items: prev.items || [],
-            error: (e && e.message) ? e.message : String(e)
+            error: {
+              message: (e && e.userMessage) || 'Could not reach the news feeds.',
+              detail: (e && (e.detail || e.message)) || ''
+            },
+            fromSnapshot: false,
+            checking: false
           };
           saveResults();
         });
@@ -675,33 +714,18 @@
 
   function boot() {
     wireTopbar();
-
-    // When the live feed finally answers, swap it in over the bundled snapshot.
-    // Keep any publisher URL we already resolved — the live path can only
-    // produce Google redirect links, which are worse to click.
-    Api.onLive(function (payload) {
-      var q = S.state().queries.filter(function (x) { return x.text === payload.query; })[0];
-      if (!q) return;
-      var prev = results[q.id] ? results[q.id].items : [];
-      var resolved = {};
-      prev.forEach(function (it) {
-        if (it.url && it.url.indexOf('news.google.com') !== 0) resolved[normTitle(it.title)] = it.url;
-      });
-      var merged = payload.items.map(function (it) {
-        var r = resolved[normTitle(it.title)];
-        return r ? Object.assign({}, it, { url: r, needsResolve: false }) : it;
-      });
-      results[q.id] = { fetchedAt: new Date().toISOString(), items: merged, error: null };
-      saveResults();
-      render();
+    // A check interrupted by closing the tab must not leave a permanent
+    // "checking…" behind.
+    Object.keys(results).forEach(function (id) {
+      if (results[id]) results[id].checking = false;
     });
-
+    saveResults();
     render();
-    if (S.state().queries.length) {
-      S.state().queries.forEach(function (q) { expanded[q.id] = true; });
-      render();
-      runQueries(null);
-    }
+    // Deliberately no fetch here. Watches are checked when the user asks.
+    // The last result set is kept in localStorage, so a reload shows what was
+    // last found without touching the network at all.
+    S.state().queries.forEach(function (q) { expanded[q.id] = true; });
+    if (S.state().queries.length) render();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
