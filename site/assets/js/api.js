@@ -70,10 +70,14 @@
       return a - b;
     });
     var i = 0;
+    var tried = [];
     function next() {
-      if (i >= order.length) return Promise.reject(new Error('no relay answered'));
+      if (i >= order.length) {
+        return Promise.reject(new Error('no CORS relay answered (' + tried.join(', ') + ')'));
+      }
       var idx = order[i++];
       var r = RELAYS[idx];
+      tried.push(r.name);
       return fetchWithTimeout(r.url(url)).then(function (resp) {
         if (!resp.ok) throw new Error(r.name + ' HTTP ' + resp.status);
         return resp.text();

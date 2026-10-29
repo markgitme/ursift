@@ -20,12 +20,14 @@ import urllib.request
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
+# These must match the sample chips in site/assets/js/app.js exactly — the
+# snapshot is looked up by the literal query string.
 SAMPLE_QUERIES = [
-    "btc halving",
+    "BTC halving",
     "peso price today",
-    "new pokemon game release date",
-    "my chemical romance concert dates",
-    "philippine peso exchange rate",
+    "is there an ongoing war right now",
+    "when is the new pokemon game gonna get released",
+    "my chemical romance band concert",
 ]
 
 RESOLVE_LIMIT = 12          # per query — enough to fill the visible list

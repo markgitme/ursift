@@ -1,7 +1,7 @@
 {
- "bakedAt": "2026-10-29T01:40:10Z",
+ "bakedAt": "2026-10-29T02:36:55Z",
  "queries": {
-  "btc halving": [
+  "BTC halving": [
    {
     "title": "Prediction: Could Bitcoin Reach a New All-Time High Before the 2028 Halving? - 24/7 Wall St.",
     "url": "https://247wallst.com/investing/cryptocurrency/2026/10/26/prediction-could-bitcoin-reach-a-new-all-time-high-before-the-2028-halving/",
@@ -131,11 +131,11 @@
     "needsResolve": false
    },
    {
-    "title": "Next Bitcoin Halving 2028 Countdown & Date [Clock] - Bitbo",
-    "url": "https://bitbo.io/halving/",
-    "published": "Tue, 20 Feb 2024 18:20:53 GMT",
-    "source": "Bitbo",
-    "domain": "bitbo.io",
+    "title": "Bitcoin's 'halving': what is it and does it matter? - Reuters",
+    "url": "https://www.reuters.com/markets/currencies/bitcoins-halving-what-is-it-does-it-matter-2024-04-19/",
+    "published": "Fri, 19 Apr 2024 07:00:00 GMT",
+    "source": "Reuters",
+    "domain": "reuters.com",
     "needsResolve": false
    },
    {
@@ -155,11 +155,11 @@
     "needsResolve": false
    },
    {
-    "title": "Bitcoin's 'halving': what is it and does it matter? - Reuters",
-    "url": "https://www.reuters.com/markets/currencies/bitcoins-halving-what-is-it-does-it-matter-2024-04-19/",
-    "published": "Fri, 19 Apr 2024 07:00:00 GMT",
-    "source": "Reuters",
-    "domain": "reuters.com",
+    "title": "Next Bitcoin Halving 2028 Countdown & Date [Clock] - Bitbo",
+    "url": "https://bitbo.io/halving/",
+    "published": "Tue, 20 Feb 2024 18:20:53 GMT",
+    "source": "Bitbo",
+    "domain": "bitbo.io",
     "needsResolve": false
    },
    {
@@ -195,14 +195,6 @@
     "needsResolve": false
    },
    {
-    "title": "What is bitcoin halving \u2013 and will it affect the price? - The Guardian",
-    "url": "https://www.theguardian.com/technology/2024/apr/19/what-is-bitcoin-halving-price",
-    "published": "Fri, 19 Apr 2024 07:00:00 GMT",
-    "source": "The Guardian",
-    "domain": "theguardian.com",
-    "needsResolve": false
-   },
-   {
     "title": "What is a Bitcoin halving? - Coinbase",
     "url": "https://www.coinbase.com/learn/crypto-basics/what-is-a-bitcoin-halving",
     "published": "Thu, 17 Dec 2020 02:06:26 GMT",
@@ -232,6 +224,14 @@
     "published": "Tue, 16 Apr 2024 07:00:00 GMT",
     "source": "www.galaxy.com",
     "domain": "galaxy.com",
+    "needsResolve": false
+   },
+   {
+    "title": "What is bitcoin halving \u2013 and will it affect the price? - The Guardian",
+    "url": "https://www.theguardian.com/technology/2024/apr/19/what-is-bitcoin-halving-price",
+    "published": "Fri, 19 Apr 2024 07:00:00 GMT",
+    "source": "The Guardian",
+    "domain": "theguardian.com",
     "needsResolve": false
    },
    {
@@ -325,14 +325,6 @@
   ],
   "peso price today": [
    {
-    "title": "Mobile wallet operator GCash parent Mynt ends flat after record Philippine IPO - Reuters",
-    "url": "https://www.reuters.com/world/asia-pacific/gcash-owner-mynt-edges-higher-after-record-philippine-ipo-2026-10-20/",
-    "published": "Tue, 20 Oct 2026 07:00:00 GMT",
-    "source": "Reuters",
-    "domain": "reuters.com",
-    "needsResolve": false
-   },
-   {
     "title": "USD/MXN Analysis: Can the Peso Recover Against a More Aggressive Fed? - StoneX",
     "url": "https://www.stonex.com/en-gb/news-and-analysis/usd-mxn-analysis-can-the-peso-recover-against-a-more-aggressive-fed-2026-09-17/",
     "published": "Thu, 17 Sep 2026 07:00:00 GMT",
@@ -349,11 +341,11 @@
     "needsResolve": false
    },
    {
-    "title": "Convert 1 BTC (Bitcoin) to PHP (Philippine Peso) - Bybit",
-    "url": "https://www.bybit.com/en/convert/btc-to-php/",
-    "published": "Mon, 26 Oct 2026 17:22:35 GMT",
-    "source": "Bybit",
-    "domain": "bybit.com",
+    "title": "Mobile wallet operator GCash parent Mynt ends flat after record Philippine IPO - Reuters",
+    "url": "https://www.reuters.com/world/asia-pacific/gcash-owner-mynt-edges-higher-after-record-philippine-ipo-2026-10-20/",
+    "published": "Tue, 20 Oct 2026 07:00:00 GMT",
+    "source": "Reuters",
+    "domain": "reuters.com",
     "needsResolve": false
    },
    {
@@ -365,27 +357,19 @@
     "needsResolve": false
    },
    {
+    "title": "Philippines \u2013 Strait of Hormuz closure: Impact of higher oil prices and more - MUFG Research",
+    "url": "https://www.mufgresearch.com/fx/philippines-strait-of-hormuz-closure-impact-of-higher-oil-prices-and-more-9-march-2026/",
+    "published": "Mon, 09 Mar 2026 07:00:00 GMT",
+    "source": "MUFG Research",
+    "domain": "mufgresearch.com",
+    "needsResolve": false
+   },
+   {
     "title": "The peso-dollar exchange rate closed at P60.393 to $1 today, June 17, 2026. Visit www.gmanetwork.com/news for more news and updates. - Facebook",
     "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-p60393-to-1-today-june-17-2026-visit-for/1563228275848824/",
     "published": "Wed, 17 Jun 2026 07:00:00 GMT",
     "source": "Facebook",
     "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "What's driving US Dollar vs Colombian Peso higher today? - Traders Union",
-    "url": "https://tradersunion.com/news/currencies/show/3105166-us-dollar-vs-peso-rises/",
-    "published": "Tue, 25 Aug 2026 07:00:00 GMT",
-    "source": "Traders Union",
-    "domain": "tradersunion.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Gold price in Philippines: Rates on July 30 - FXStreet",
-    "url": "https://www.fxstreet.com/news/philippines-gold-price-today-gold-falls-according-to-fxstreet-data-202607300501",
-    "published": "Thu, 30 Jul 2026 07:00:00 GMT",
-    "source": "FXStreet",
-    "domain": "fxstreet.com",
     "needsResolve": false
    },
    {
@@ -397,43 +381,19 @@
     "needsResolve": false
    },
    {
-    "title": "Remit now: How far does one dirham go for expats today? - Gulf News",
-    "url": "https://gulfnews.com/your-money/saving-investment/remit-now-how-far-does-one-dirham-go-for-expats-today-1.500301712",
-    "published": "Tue, 27 Oct 2026 06:01:03 GMT",
-    "source": "Gulf News",
-    "domain": "gulfnews.com",
+    "title": "Convert 1 BTC (Bitcoin) to PHP (Philippine Peso) - Bybit",
+    "url": "https://www.bybit.com/en/convert/btc-to-php/",
+    "published": "Mon, 26 Oct 2026 17:22:35 GMT",
+    "source": "Bybit",
+    "domain": "bybit.com",
     "needsResolve": false
    },
    {
-    "title": "Remit now: What does each dirham fetch expats back home? - Gulf News",
-    "url": "https://gulfnews.com/your-money/saving-investment/dirham-gains-on-rupee-peso-weakness-should-expats-remit-now-1.500301712",
-    "published": "Fri, 23 Oct 2026 06:46:22 GMT",
-    "source": "Gulf News",
-    "domain": "gulfnews.com",
-    "needsResolve": false
-   },
-   {
-    "title": "What is behind Euro vs Colombian Peso price's recent drop in value today - Traders Union",
-    "url": "https://tradersunion.com/news/financial-news/show/2390106-euro-vs-colombian-peso-declines/",
-    "published": "Wed, 17 Jun 2026 07:00:00 GMT",
-    "source": "Traders Union",
-    "domain": "tradersunion.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso purchasing power returns to record-low \u20b10.73 in August despite easing inflation - Manila Bulletin",
-    "url": "https://mb.com.ph/2026/09/04/peso-purchasing-power-returns-to-record-low-073-in-august-despite-easing-inflation",
-    "published": "Fri, 04 Sep 2026 07:00:00 GMT",
-    "source": "Manila Bulletin",
-    "domain": "mb.com.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "Philippines \u2013 Strait of Hormuz closure: Impact of higher oil prices and more - MUFG Research",
-    "url": "https://www.mufgresearch.com/fx/philippines-strait-of-hormuz-closure-impact-of-higher-oil-prices-and-more-9-march-2026/",
-    "published": "Mon, 09 Mar 2026 07:00:00 GMT",
-    "source": "MUFG Research",
-    "domain": "mufgresearch.com",
+    "title": "Cuba Has a New US Dollar-Peso Exchange Rate - Havana Times",
+    "url": "https://havanatimes.org/news/cuba-has-a-new-us-dollar-peso-exchange-rate/",
+    "published": "Thu, 18 Dec 2025 08:00:00 GMT",
+    "source": "Havana Times",
+    "domain": "havanatimes.org",
     "needsResolve": false
    },
    {
@@ -445,11 +405,35 @@
     "needsResolve": false
    },
    {
-    "title": "The peso-dollar exchange rate closed at P59.35 to $1 today, Jan. 16, 2026. Follow www.gmanetwork.com/news for more news and updates. - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-p5935-to-1-today-jan-16-2026-follow-for-/1389639913207662/",
-    "published": "Fri, 16 Jan 2026 08:00:00 GMT",
+    "title": "Remit now: How far does one dirham go for expats today? - Gulf News",
+    "url": "https://gulfnews.com/your-money/saving-investment/remit-now-how-far-does-one-dirham-go-for-expats-today-1.500301712",
+    "published": "Tue, 27 Oct 2026 06:01:03 GMT",
+    "source": "Gulf News",
+    "domain": "gulfnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Philippine transport strikers say Marcos Jr failing to control oil prices - Al Jazeera",
+    "url": "https://www.aljazeera.com/economy/2026/3/28/philippine-transport-strikers-say-marcos-jr-failing-to-control-oil-prices",
+    "published": "Sat, 28 Mar 2026 07:00:00 GMT",
+    "source": "Al Jazeera",
+    "domain": "aljazeera.com",
+    "needsResolve": false
+   },
+   {
+    "title": "PESO-DOLLAR CLOSING RATE (16 APRIL 2026) - Facebook",
+    "url": "https://www.facebook.com/abscbnNEWS/posts/peso-dollar-closing-rate-16-april-2026/1479086397599945/",
+    "published": "Thu, 16 Apr 2026 07:00:00 GMT",
     "source": "Facebook",
     "domain": "facebook.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Remit now: What does each dirham fetch expats back home? - Gulf News",
+    "url": "https://gulfnews.com/your-money/saving-investment/dirham-gains-on-rupee-peso-weakness-should-expats-remit-now-1.500301712",
+    "published": "Fri, 23 Oct 2026 06:46:22 GMT",
+    "source": "Gulf News",
+    "domain": "gulfnews.com",
     "needsResolve": false
    },
    {
@@ -461,9 +445,9 @@
     "needsResolve": false
    },
    {
-    "title": "The peso-dollar exchange rate closed at P58.899 to $1 today, Feb. 2, 2026 Follow www.gmanetwork.com/news for more news and updates. - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-p58899-to-1-today-feb-2-2026follow-for-m/1405511648287155/",
-    "published": "Mon, 02 Feb 2026 08:00:00 GMT",
+    "title": "The peso-dollar exchange rate closed at P59.35 to $1 today, Jan. 16, 2026. Follow www.gmanetwork.com/news for more news and updates. - Facebook",
+    "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-p5935-to-1-today-jan-16-2026-follow-for-/1389639913207662/",
+    "published": "Fri, 16 Jan 2026 08:00:00 GMT",
     "source": "Facebook",
     "domain": "facebook.com",
     "needsResolve": false
@@ -477,11 +461,11 @@
     "needsResolve": false
    },
    {
-    "title": "Live Silver Price in Mexican Peso (MXN) - GoldBroker",
-    "url": "https://goldbroker.com/charts/silver-price/mxn",
-    "published": "Thu, 04 Mar 2021 20:54:24 GMT",
-    "source": "GoldBroker",
-    "domain": "goldbroker.com",
+    "title": "The peso-dollar exchange rate closed at P58.899 to $1 today, Feb. 2, 2026 Follow www.gmanetwork.com/news for more news and updates. - Facebook",
+    "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-p58899-to-1-today-feb-2-2026follow-for-m/1405511648287155/",
+    "published": "Mon, 02 Feb 2026 08:00:00 GMT",
+    "source": "Facebook",
+    "domain": "facebook.com",
     "needsResolve": false
    },
    {
@@ -501,6 +485,22 @@
     "needsResolve": false
    },
    {
+    "title": "ABS-CBN News. . Motorists across the country are facing a sharp spike in fuel prices as a series of oil price hikes took effect on Tuesday (March 10), driven by rising tensions in the Middle East that continue to threaten global fuel supply. - Facebook",
+    "url": "https://www.facebook.com/abscbnNEWS/videos/staggered-big-time-oil-price-hike-begins/1635818767435204/",
+    "published": "Tue, 10 Mar 2026 07:00:00 GMT",
+    "source": "Facebook",
+    "domain": "facebook.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Live Silver Price in Mexican Peso (MXN) - GoldBroker",
+    "url": "https://goldbroker.com/charts/silver-price/mxn",
+    "published": "Thu, 04 Mar 2021 20:54:24 GMT",
+    "source": "GoldBroker",
+    "domain": "goldbroker.com",
+    "needsResolve": false
+   },
+   {
     "title": "The price of the dollar today Monday, July 17, 2023 - Enlace Latino NC",
     "url": "https://enlacelatinonc.org/en/the-price-of-the-dollar-today-Monday%2C-July-17%2C-2023/",
     "published": "Mon, 17 Jul 2023 07:00:00 GMT",
@@ -509,19 +509,19 @@
     "needsResolve": false
    },
    {
-    "title": "Philippine transport strikers say Marcos Jr failing to control oil prices - Al Jazeera",
-    "url": "https://www.aljazeera.com/economy/2026/3/28/philippine-transport-strikers-say-marcos-jr-failing-to-control-oil-prices",
-    "published": "Sat, 28 Mar 2026 07:00:00 GMT",
-    "source": "Al Jazeera",
-    "domain": "aljazeera.com",
+    "title": "Peso sinks to new record low as markets price in BSP cut - Inquirer.net",
+    "url": "https://business.inquirer.net/563523/peso-sinks-to-new-record-low-as-markets-price-in-bsp-cut",
+    "published": "Wed, 10 Dec 2025 08:00:00 GMT",
+    "source": "Inquirer.net",
+    "domain": "business.inquirer.net",
     "needsResolve": false
    },
    {
-    "title": "Mexican Peso Tether (MXNT) Price Today, News & Live Chart | Forbes Crypto Market Data - Forbes",
-    "url": "https://www.forbes.com/digital-assets/assets/mexican-peso-tether-mxnt/",
-    "published": "Tue, 20 Jun 2023 14:51:36 GMT",
-    "source": "Forbes",
-    "domain": "forbes.com",
+    "title": "PH fuel prices \u2018most expensive\u2019 yet, as peso almost 60:$1 - Inquirer.net",
+    "url": "https://newsinfo.inquirer.net/2196718/ph-fuel-prices-most-expensive-yet-as-peso-almost-601",
+    "published": "Tue, 17 Mar 2026 07:00:00 GMT",
+    "source": "Inquirer.net",
+    "domain": "newsinfo.inquirer.net",
     "needsResolve": false
    },
    {
@@ -533,6 +533,14 @@
     "needsResolve": false
    },
    {
+    "title": "Mexican Peso Tether (MXNT) Price Today, News & Live Chart | Forbes Crypto Market Data - Forbes",
+    "url": "https://www.forbes.com/digital-assets/assets/mexican-peso-tether-mxnt/",
+    "published": "Tue, 20 Jun 2023 14:51:36 GMT",
+    "source": "Forbes",
+    "domain": "forbes.com",
+    "needsResolve": false
+   },
+   {
     "title": "Price of the dollar in Mexico today February 17, 2023 - Enlace Latino NC",
     "url": "https://enlacelatinonc.org/en/price-of-the-dollar-in-Mexico-today-February-17%2C-2023/",
     "published": "Fri, 17 Feb 2023 08:00:00 GMT",
@@ -541,11 +549,11 @@
     "needsResolve": false
    },
    {
-    "title": "The peso-dollar exchange rate closed at \u20b155.57 to $1 today, May 2, 2025. This is the peso\u2019s strongest since it finished at P55.53:$ on March 15, 2024. READ: https://www.gmanetwork.com/news/money/economy/944780/peso-sustains-strength-closes-at-p55-t - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-5557-to-1-today-may-2-2025this-is-the-pe/1155531619951827/",
-    "published": "Fri, 02 May 2025 07:00:00 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
+    "title": "Peso purchasing power returns to record-low \u20b10.73 in August despite easing inflation - Manila Bulletin",
+    "url": "https://mb.com.ph/2026/09/04/peso-purchasing-power-returns-to-record-low-073-in-august-despite-easing-inflation",
+    "published": "Fri, 04 Sep 2026 07:00:00 GMT",
+    "source": "Manila Bulletin",
+    "domain": "mb.com.ph",
     "needsResolve": false
    },
    {
@@ -557,6 +565,14 @@
     "needsResolve": false
    },
    {
+    "title": "The peso-dollar exchange rate closed at \u20b155.57 to $1 today, May 2, 2025. This is the peso\u2019s strongest since it finished at P55.53:$ on March 15, 2024. READ: https://www.gmanetwork.com/news/money/economy/944780/peso-sustains-strength-closes-at-p55-t - Facebook",
+    "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-5557-to-1-today-may-2-2025this-is-the-pe/1155531619951827/",
+    "published": "Fri, 02 May 2025 07:00:00 GMT",
+    "source": "Facebook",
+    "domain": "facebook.com",
+    "needsResolve": false
+   },
+   {
     "title": "Pump prices up today - Philstar.com",
     "url": "https://www.philstar.com/headlines/2026/05/05/2525712/pump-prices-today",
     "published": "Tue, 05 May 2026 07:00:00 GMT",
@@ -565,33 +581,17 @@
     "needsResolve": false
    },
    {
+    "title": "The Right Time to Buy U.S. Dollars in Colombia? Experts Explain Risks and Opportunities - ColombiaOne.com",
+    "url": "https://colombiaone.com/2025/09/24/buy-us-dollars-colombia/",
+    "published": "Wed, 24 Sep 2025 07:00:00 GMT",
+    "source": "ColombiaOne.com",
+    "domain": "colombiaone.com",
+    "needsResolve": false
+   },
+   {
     "title": "The peso-dollar exchange rate closed at \u20b159.00 to $1 today, November 21, 2024. Follow GMA News for more updates. - Facebook",
     "url": "https://www.facebook.com/gmanews/posts/the-peso-dollar-exchange-rate-closed-at-5900-to-1-today-november-21-2024follow-g/1019852380186419/",
     "published": "Thu, 21 Nov 2024 08:00:00 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "USD to MXN Forecast: US dollar vs Mexican Peso 2026, 2027-2030 - CoinCodex",
-    "url": "https://coincodex.com/forex/usd-mxn/forecast/",
-    "published": "Sat, 11 Nov 2023 23:01:25 GMT",
-    "source": "CoinCodex",
-    "domain": "coincodex.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Mento Philippine Peso (PHPM) Price Today, News & Live Chart | Forbes Crypto Market Data - Forbes",
-    "url": "https://www.forbes.com/digital-assets/assets/puso-puso/",
-    "published": "Sun, 13 Oct 2024 09:23:29 GMT",
-    "source": "Forbes",
-    "domain": "forbes.com",
-    "needsResolve": false
-   },
-   {
-    "title": "ABS-CBN News. . Motorists across the country are facing a sharp spike in fuel prices as a series of oil price hikes took effect on Tuesday (March 10), driven by rising tensions in the Middle East that continue to threaten global fuel supply. - Facebook",
-    "url": "https://www.facebook.com/abscbnNEWS/videos/staggered-big-time-oil-price-hike-begins/1635818767435204/",
-    "published": "Tue, 10 Mar 2026 07:00:00 GMT",
     "source": "Facebook",
     "domain": "facebook.com",
     "needsResolve": false
@@ -613,39 +613,361 @@
     "needsResolve": false
    },
    {
-    "title": "Live Platinum Price in Philippine Peso (PHP) - GoldBroker",
-    "url": "https://goldbroker.com/charts/platinum-price/php",
-    "published": "Thu, 04 Mar 2021 22:09:24 GMT",
-    "source": "GoldBroker",
-    "domain": "goldbroker.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso sinks to new record low as markets price in BSP cut - Inquirer.net",
-    "url": "https://business.inquirer.net/563523/peso-sinks-to-new-record-low-as-markets-price-in-bsp-cut",
-    "published": "Wed, 10 Dec 2025 08:00:00 GMT",
-    "source": "Inquirer.net",
-    "domain": "business.inquirer.net",
-    "needsResolve": false
-   },
-   {
-    "title": "USD/MXN Forecast: Today, Tomorrow, Next 30 Days - Traders Union",
-    "url": "https://tradersunion.com/currencies/forecast/usd-mxn/",
-    "published": "Fri, 15 Sep 2023 14:37:12 GMT",
-    "source": "Traders Union",
-    "domain": "tradersunion.com",
-    "needsResolve": false
-   },
-   {
     "title": "Price of the dollar today in Mexico, Honduras and Guatemala for this Friday, September 10, 2021 - Enlace Latino NC",
     "url": "https://enlacelatinonc.org/en/price-of-the-dollar-today-in-Mexico%2C-Honduras-and-Guatemala-for-this-Friday%2C-September-10%2C-2021/",
     "published": "Fri, 10 Sep 2021 07:00:00 GMT",
     "source": "Enlace Latino NC",
     "domain": "enlacelatinonc.org",
     "needsResolve": false
+   },
+   {
+    "title": "Bitcoin to MXN (BTC/MXN) Today | 1 BTC to MXN Live Rate & Calculator - Binance",
+    "url": "https://www.binance.com/en/price/bitcoin/MXN",
+    "published": "Fri, 22 Mar 2024 11:14:04 GMT",
+    "source": "Binance",
+    "domain": "binance.com",
+    "needsResolve": false
+   },
+   {
+    "title": "USD/MXN Forecast: The US dollar has fallen against the Mexican peso - Markets.com",
+    "url": "https://www.markets.com/research/usd-mxn-forecast-the-us-dollar-has-fallen-against-the-mexican-peso",
+    "published": "Tue, 03 Jun 2025 07:00:00 GMT",
+    "source": "Markets.com",
+    "domain": "markets.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Live Platinum Price in Philippine Peso (PHP) - GoldBroker",
+    "url": "https://goldbroker.com/charts/platinum-price/php",
+    "published": "Thu, 04 Mar 2021 22:09:24 GMT",
+    "source": "GoldBroker",
+    "domain": "goldbroker.com",
+    "needsResolve": false
    }
   ],
-  "new pokemon game release date": [
+  "is there an ongoing war right now": [
+   {
+    "title": "8-month Iran war looms over Israeli election as Egypt wades into Saudi's fight with the Houthis - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-trump-us-diplomacy-oil-prices-strait-of-hormuz/",
+    "published": "Mon, 26 Oct 2026 10:45:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "When is war not \u2018war\u2019? In Iran, according to the U.S. - Los Angeles Times",
+    "url": "https://www.latimes.com/politics/story/2026-10-05/why-trump-administration-is-reluctant-to-call-ongoing-conflict-with-iran-war",
+    "published": "Mon, 05 Oct 2026 07:00:00 GMT",
+    "source": "Los Angeles Times",
+    "domain": "latimes.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Week in Politics: Inflation pressure; war in Iran and effect on midterm elections - NPR",
+    "url": "https://www.npr.org/2026/10/03/nx-s1-5989415/week-in-politics-inflation-pressure-war-in-iran-and-effect-on-midterm-elections",
+    "published": "Sat, 03 Oct 2026 07:00:00 GMT",
+    "source": "NPR",
+    "domain": "npr.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Senior Trump administration officials met to discuss Iran war at Camp David - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/trump-iran-war-us-midterm-elections-troops-deployment/",
+    "published": "Mon, 05 Oct 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Vice President JD Vance says Iran fight isn't a 'war' as Trump tries to navigate unpopular conflict as election nears - ABC7 New York",
+    "url": "https://abc7ny.com/story/vice-president-jd-vance-says-iran-fight-isnt-war-trump-tries-navigate-unpopular-conflict-election-nears/19789369/",
+    "published": "Fri, 04 Sep 2026 07:00:00 GMT",
+    "source": "ABC7 New York",
+    "domain": "abc7ny.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Security Council LIVE: World leaders debate ongoing war in Ukraine - UN News",
+    "url": "https://news.un.org/en/story/2026/09/1168410",
+    "published": "Wed, 23 Sep 2026 07:00:00 GMT",
+    "source": "UN News",
+    "domain": "news.un.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump\u2019s Canadian trade war stirs up trouble for Republican candidates - Stateline",
+    "url": "https://stateline.org/2026/09/09/trumps-canadian-trade-war-stirs-up-trouble-for-republican-candidates/",
+    "published": "Wed, 09 Sep 2026 07:00:00 GMT",
+    "source": "Stateline",
+    "domain": "stateline.org",
+    "needsResolve": false
+   },
+   {
+    "title": "U.S.-Iran strikes escalate as the ongoing war rattles global energy markets - NPR",
+    "url": "https://www.npr.org/2026/07/24/nx-s1-5904556/u-s-iran-strikes-escalate-as-the-ongoing-war-rattles-global-energy-markets",
+    "published": "Fri, 24 Jul 2026 07:00:00 GMT",
+    "source": "NPR",
+    "domain": "npr.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Human rights chief T\u00fcrk renews call for end to spiralling Sudan war - UN News",
+    "url": "https://news.un.org/en/story/2026/09/1168287",
+    "published": "Mon, 07 Sep 2026 07:00:00 GMT",
+    "source": "UN News",
+    "domain": "news.un.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump announces \"crushing economic operation\" on Iran with talks in limbo - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/us-iran-war-deal-strait-of-hormuz/",
+    "published": "Thu, 20 Aug 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump says war \u2018can\u2019t go much longer\u2019 \u2013 what\u2019s the latest on talks? - Al Jazeera",
+    "url": "https://www.aljazeera.com/news/2026/8/7/trump-says-war-cant-go-much-longer-whats-the-latest-on",
+    "published": "Fri, 07 Aug 2026 07:00:00 GMT",
+    "source": "Al Jazeera",
+    "domain": "aljazeera.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump says Iran war \u2018will end immediately\u2019 after US midterm elections - Al Jazeera",
+    "url": "https://www.aljazeera.com/news/2026/9/9/trump-says-iran-war-will-end-immediately-after-us-midterm-elections",
+    "published": "Wed, 09 Sep 2026 07:00:00 GMT",
+    "source": "Al Jazeera",
+    "domain": "aljazeera.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump says ongoing talks are Iran\u2019s \u2018last chance\u2019 - Al Jazeera",
+    "url": "https://www.aljazeera.com/news/2026/8/3/trump-blasts-duplicitous-iran-after-tehran-denies-it-is-in-talks-with-the-us",
+    "published": "Mon, 03 Aug 2026 07:00:00 GMT",
+    "source": "Al Jazeera",
+    "domain": "aljazeera.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Iran blames US for Hormuz dispute as both sides confirm ongoing talks - Al Jazeera",
+    "url": "https://www.aljazeera.com/news/2026/7/25/iran-blames-us-for-hormuz-dispute-as-both-sides-confirm-ongoing-talks",
+    "published": "Sat, 25 Jul 2026 07:00:00 GMT",
+    "source": "Al Jazeera",
+    "domain": "aljazeera.com",
+    "needsResolve": false
+   },
+   {
+    "title": "U.S. forgoes strikes on Iran, but conflict in the Red Sea escalates - NBC News",
+    "url": "https://www.nbcnews.com/world/iran/us-forgoes-strikes-iran-conflict-escalates-red-sea-rcna589285",
+    "published": "Sun, 26 Jul 2026 07:00:00 GMT",
+    "source": "NBC News",
+    "domain": "nbcnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "How the war in Iran is creating chaos and uncertainty in sport - The Athletic - The New York Times",
+    "url": "https://www.nytimes.com/athletic/7626223/2026/09/26/iran-us-israel-war-sport/",
+    "published": "Sat, 26 Sep 2026 07:00:00 GMT",
+    "source": "The New York Times",
+    "domain": "nytimes.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Iran says Strait of Hormuz won't open until the U.S. \"corrects\" behavior - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-yemen-saudi-arabia-houthis-donald-trump-deadly-attacks/",
+    "published": "Sun, 09 Aug 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump says Iran talks continuing at \"rapid pace\" after regime threatens \"other fronts\" in war - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-us-trump-strikes-ceasefire-lebanon-israel/",
+    "published": "Tue, 02 Jun 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Why Conflict Feels Constant Now - Noema Magazine",
+    "url": "https://www.noemamag.com/why-conflict-feels-constant-now",
+    "published": "Thu, 04 Jun 2026 07:00:00 GMT",
+    "source": "Noema Magazine",
+    "domain": "noemamag.com",
+    "needsResolve": false
+   },
+   {
+    "title": "\u2018A politically impossible situation\u2019: New poll shows Trump voters losing patience with Iran war - Politico",
+    "url": "https://www.politico.com/news/2026/07/22/poll-maga-souring-iran-war-costs-trump-01006976",
+    "published": "Wed, 22 Jul 2026 07:00:00 GMT",
+    "source": "Politico",
+    "domain": "politico.com",
+    "needsResolve": false
+   },
+   {
+    "title": "\u2018Very Hard to See How This Ends\u2019 - Politico",
+    "url": "https://www.politico.com/news/magazine/2026/09/08/canada-tariffs-carney-trump-reporter-roundtable-01063720",
+    "published": "Tue, 08 Sep 2026 07:00:00 GMT",
+    "source": "Politico",
+    "domain": "politico.com",
+    "needsResolve": false
+   },
+   {
+    "title": "US launches 10th round of strikes as Iran says it is in \u2018full-scale war\u2019 - The Guardian",
+    "url": "https://www.theguardian.com/world/2026/jul/20/us-strikes-iran-strait-of-hormuz-oil-prices",
+    "published": "Sun, 19 Jul 2026 07:00:00 GMT",
+    "source": "The Guardian",
+    "domain": "theguardian.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump says Iran has not agreed to a deal to end the war because \u2018they\u2019re strong, they\u2019re proud\u2019 - NBC News",
+    "url": "https://www.nbcnews.com/politics/donald-trump/trump-iran-not-agreed-deal-strong-re-proud-rcna348511",
+    "published": "Fri, 05 Jun 2026 07:00:00 GMT",
+    "source": "NBC News",
+    "domain": "nbcnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Iran-U.S. negotiators have agreed to broad principles of agreement, official says; Trump says \"time is on our side\" - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-trump-us-peace-talks-strait-of-hormuz-control/",
+    "published": "Mon, 25 May 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "US Insists Iran 'Does Not Control' Strait Of Hormuz - Radio Free Europe/Radio Liberty",
+    "url": "https://www.rferl.org/a/iran-war-us-hormuz-oil-blockade-gulf-israel/33640284.html",
+    "published": "Wed, 22 Jul 2026 07:00:00 GMT",
+    "source": "Radio Free Europe/Radio Liberty",
+    "domain": "rferl.org",
+    "needsResolve": false
+   },
+   {
+    "title": "AI at War: What the Ongoing Conflicts Reveal About Power, Technology and Ethics - Centre for International Governance Innovation",
+    "url": "https://www.cigionline.org/articles/ai-at-war-what-the-ongoing-conflicts-reveal-about-power-technology-and-ethics/",
+    "published": "Wed, 20 May 2026 07:00:00 GMT",
+    "source": "Centre for International Governance Innovation",
+    "domain": "cigionline.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump heads to China amid ongoing war with Iran - NPR",
+    "url": "https://www.npr.org/2026/05/11/nx-s1-5816150/trump-heads-to-china-amid-ongoing-war-with-iran",
+    "published": "Mon, 11 May 2026 07:00:00 GMT",
+    "source": "NPR",
+    "domain": "npr.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Iran vows to fight on as Trump says ceasefire is \"on life support\" - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-trump-oil-prices-peace-proposal-unacceptable/",
+    "published": "Tue, 12 May 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump wants Europe to retroactively pay U.S. for past Ukraine aid - CBC",
+    "url": "https://www.cbc.ca/news/world/trump-us-europe-ukraine-support-9.7331457",
+    "published": "Thu, 03 Sep 2026 07:00:00 GMT",
+    "source": "CBC",
+    "domain": "cbc.ca",
+    "needsResolve": false
+   },
+   {
+    "title": "Ships attacked in the Strait of Hormuz: What that means for ongoing talks - Al Jazeera",
+    "url": "https://www.aljazeera.com/news/2026/7/7/ships-attacked-in-the-strait-of-hormuz-what-that-means-for-ongoing-talks",
+    "published": "Tue, 07 Jul 2026 07:00:00 GMT",
+    "source": "Al Jazeera",
+    "domain": "aljazeera.com",
+    "needsResolve": false
+   },
+   {
+    "title": "\u2018I wouldn\u2019t call it a war,\u2019 says JD Vance on ongoing conflict with Iran - WION",
+    "url": "https://www.wionews.com/world/i-wouldn-t-call-it-a-war-says-jd-vance-on-ongoing-conflict-with-iran-1788467837247",
+    "published": "Fri, 04 Sep 2026 07:00:00 GMT",
+    "source": "WION",
+    "domain": "wionews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump Says Cease-Fire With Iran on 'Life Support' After Rejecting Tehran\u2019s Response - Time Magazine",
+    "url": "https://time.com/article/2026/05/11/us-iran-israel-war-trump-netanyahu-peace-talks-latest/",
+    "published": "Mon, 11 May 2026 07:00:00 GMT",
+    "source": "Time Magazine",
+    "domain": "time.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pentagon changes its website to lower the number of U.S. troop deaths during war with Iran - MS NOW",
+    "url": "https://www.ms.now/rachel-maddow-show/maddowblog/pentagon-website-troop-deaths-casualties-war-iran",
+    "published": "Fri, 24 Jul 2026 07:00:00 GMT",
+    "source": "MS NOW",
+    "domain": "ms.now",
+    "needsResolve": false
+   },
+   {
+    "title": "Trump says \"Clock is Ticking\" for Iran as shaky ceasefire continues - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-trump-strait-of-hormuz-trust-americans-control/",
+    "published": "Mon, 18 May 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "When will the Iran war end? The US can\u2019t even decide when it began | Lawrence Douglas - The Guardian",
+    "url": "https://www.theguardian.com/commentisfree/2026/may/14/iran-war-criminal-aggression",
+    "published": "Thu, 14 May 2026 07:00:00 GMT",
+    "source": "The Guardian",
+    "domain": "theguardian.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Iran responds to U.S. proposal for ending war amid ongoing hostilities - MS NOW",
+    "url": "https://www.ms.now/news/iran-responds-to-u-s-proposal-for-ending-war-amid-ongoing-hostilities",
+    "published": "Sun, 10 May 2026 07:00:00 GMT",
+    "source": "MS NOW",
+    "domain": "ms.now",
+    "needsResolve": false
+   },
+   {
+    "title": "Beyond the headlines: What the ongoing conflicts really mean for women and girls in the Middle East - UN Women",
+    "url": "https://www.unwomen.org/en/articles/explainer/beyond-the-headlines-what-the-ongoing-conflicts-really-mean-for-women-and-girls-in-the-middle-east",
+    "published": "Thu, 30 Apr 2026 07:00:00 GMT",
+    "source": "UN Women",
+    "domain": "unwomen.org",
+    "needsResolve": false
+   },
+   {
+    "title": "Israel-Lebanon ceasefire begins as Iran keeps Strait of Hormuz gridlocked - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-us-trump-strait-of-hormuz-diplomacy-ceasefire/",
+    "published": "Fri, 17 Apr 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "White House says Trump will \"unleash hell\" if Iran doesn't make deal - CBS News",
+    "url": "https://www.cbsnews.com/live-updates/iran-war-trump-israel-tehran-mocks-us-warns-against-ground-invasion/",
+    "published": "Thu, 26 Mar 2026 07:00:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "What we know and don't know about Iran war negotiations - PBS",
+    "url": "https://www.pbs.org/newshour/world/what-we-know-and-dont-know-about-iran-war-negotiations",
+    "published": "Wed, 25 Mar 2026 07:00:00 GMT",
+    "source": "PBS",
+    "domain": "pbs.org",
+    "needsResolve": false
+   }
+  ],
+  "when is the new pokemon game gonna get released": [
    {
     "title": "See the New Trailer for Pok\u00e9mon Winds and Pok\u00e9mon Waves, Coming to Nintendo Switch 2 - Pokemon.com",
     "url": "https://www.pokemon.com/us/news/see-the-new-trailer-for-pokemon-winds-and-pokemon-waves-coming-to-nintendo-switch-2",
@@ -655,67 +977,19 @@
     "needsResolve": false
    },
    {
-    "title": "Pok\u00e9mon gamers prepare as highly anticipated October 8 shadowdrop teased - GAMINGbible",
-    "url": "https://www.gamingbible.com/news/platform/nintendo/pokemon-new-game-october-shadowdrop-teased-681080-20261001",
-    "published": "Thu, 01 Oct 2026 07:00:00 GMT",
-    "source": "GAMINGbible",
-    "domain": "gamingbible.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Winds and Pok\u00e9mon Waves are Coming to Nintendo Switch 2 in 2027. - Nintendo",
-    "url": "https://www.nintendo.com/sg/news/article/7exdME3HEo60PDMCF8DyQ2",
-    "published": "Mon, 02 Mar 2026 08:00:00 GMT",
-    "source": "Nintendo",
-    "domain": "nintendo.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Every Pok\u00e9mon Game You Can Play on the Nintendo Switch and Switch 2 - IGN",
-    "url": "https://www.ign.com/articles/all-pokemon-games-on-nintendo-switch",
-    "published": "Wed, 19 Aug 2026 07:00:00 GMT",
+    "title": "Pok\u00e9mon TCG: Full Release Schedule for 2026 and Beyond - IGN",
+    "url": "https://www.ign.com/articles/pokemon-tcg-full-release-schedule-calendar-2026",
+    "published": "Tue, 08 Sep 2026 07:00:00 GMT",
     "source": "IGN",
     "domain": "ign.com",
     "needsResolve": false
    },
    {
-    "title": "Pok\u00e9mon Winds and Waves Release Date Confirmed in New Leak - VICE",
-    "url": "https://www.vice.com/en/article/pokemon-winds-waves-release-date-leak-2027/",
-    "published": "Wed, 02 Sep 2026 07:00:00 GMT",
-    "source": "VICE",
-    "domain": "vice.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pokemon Winds and Waves: Release Date, Gameplay, And Everything We Know So Far - GameSpot",
-    "url": "https://www.gamespot.com/articles/pokemon-winds-and-waves-release-date-gameplay-and-everything-we-know-so-far/1100-6538522/",
-    "published": "Tue, 03 Mar 2026 08:00:00 GMT",
-    "source": "GameSpot",
-    "domain": "gamespot.com",
-    "needsResolve": false
-   },
-   {
-    "title": "\u2018Pok\u00e9mon\u2019 Reveals New Games, \u2018Winds\u2019 and \u2018Waves,\u2019 With 2027 Release Date and 10th Generation Starters - Variety",
-    "url": "https://variety.com/2026/gaming/news/pokemon-winds-waves-new-games-starters-release-date-1236674619/",
+    "title": "Pok\u00e9mon Winds & Waves Will Be Released \"Exclusively\" For Switch 2 - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/02/pokemon-winds-and-waves-will-be-released-exclusively-for-switch-2",
     "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "Variety",
-    "domain": "variety.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Champions Releases on Nintendo Switch and Nintendo Switch 2 on April 8, 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/pokemon-champions-releases-on-nintendo-switch-and-nintendo-switch-2-on-april-8-2026",
-    "published": "Tue, 24 Mar 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in October 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-october-2026",
-    "published": "Thu, 01 Oct 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
     "needsResolve": false
    },
    {
@@ -727,115 +1001,11 @@
     "needsResolve": false
    },
    {
-    "title": "Pok\u00e9mon Legends: Z-A \u2013 Nintendo Switch 2 Edition + Mega Dimension Bundle Coming Soon - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/pokemon-legends-z-a-nintendo-switch-2-edition-mega-dimension-bundle-coming-soon",
-    "published": "Wed, 30 Sep 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Champions Comes to Android and iOS on June 17 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/pokemon-champions-comes-to-android-and-ios-on-june-17",
-    "published": "Wed, 03 Jun 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Champions Is Coming to Nintendo Switch in April 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/uk/news/pokemon-champions-is-coming-to-nintendo-switch-in-april-2026",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in August 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-august-2026",
-    "published": "Mon, 03 Aug 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Pokopia Is Available Now on Nintendo Switch 2 - Pokemon.com",
-    "url": "https://www.pokemon.com/uk/news/pokemon-pokopia-is-available-now-on-nintendo-switch-2",
-    "published": "Thu, 05 Mar 2026 08:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in June 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-june-2026",
-    "published": "Mon, 01 Jun 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "The Pok\u00e9mon FireRed Version and Pok\u00e9mon LeafGreen Version Games Are Releasing on Nintendo Switch - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/the-pokemon-firered-version-and-pokemon-leafgreen-version-games-are-releasing-on-nintendo-switch",
-    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in July 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-july-2026",
-    "published": "Wed, 01 Jul 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in May 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-may-2026",
-    "published": "Fri, 01 May 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out the New Pok\u00e9mon TCG Pocket Cards Announced at Pok\u00e9monXP - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-the-new-pokemon-tcg-pocket-cards-announced-at-pokemonxp",
-    "published": "Fri, 28 Aug 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Officially Drops New Game This July - Comic Book Resources",
-    "url": "https://www.cbr.com/pokemon-releases-official-new-game-july-2026/",
-    "published": "Sat, 04 Jul 2026 07:00:00 GMT",
-    "source": "Comic Book Resources",
-    "domain": "cbr.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon TCG Pocket: Deluxe Pack: Mega Coming Soon - Pokemon.com",
-    "url": "https://www.pokemon.com/uk/news/pokemon-tcg-pocket-deluxe-pack-mega-coming-soon",
-    "published": "Thu, 24 Sep 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in April 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-april-2026",
-    "published": "Wed, 01 Apr 2026 07:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Check Out Every Pok\u00e9mon TCG Product Release in March 2026 - Pokemon.com",
-    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-march-2026",
-    "published": "Mon, 02 Mar 2026 08:00:00 GMT",
-    "source": "Pokemon.com",
-    "domain": "pokemon.com",
+    "title": "Pok\u00e9mon FireRed & LeafGreen May Be Returning on Switch 2 for 30th Anniversary - VICE",
+    "url": "https://www.vice.com/en/article/pokemon-firered-leafgreen-may-be-returning-on-switch-2-for-30th-anniversary/",
+    "published": "Wed, 11 Feb 2026 08:00:00 GMT",
+    "source": "VICE",
+    "domain": "vice.com",
     "needsResolve": false
    },
    {
@@ -847,6 +1017,54 @@
     "needsResolve": false
    },
    {
+    "title": "Pok\u00e9mon Winds And Waves Will Be A Switch 2 Exclusive, Skipping Switch 1 - Kotaku",
+    "url": "https://kotaku.com/pokemon-winds-and-waves-skipping-original-nintendo-switch-2000674425",
+    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
+    "source": "Kotaku",
+    "domain": "kotaku.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pokemon Presents predictions for Pokemon Day 2026 - Nintendo Everything",
+    "url": "https://nintendoeverything.com/pokemon-day-predictions-2026/",
+    "published": "Sun, 08 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Everything",
+    "domain": "nintendoeverything.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon Anniversary Announcement Teased, Gen 10 Reveal Imminent - GAMINGbible",
+    "url": "https://www.gamingbible.com/news/pokemon-anniversary-announcement-teased-gen-10-reveal-imminent-424748-20260101",
+    "published": "Thu, 01 Jan 2026 08:00:00 GMT",
+    "source": "GAMINGbible",
+    "domain": "gamingbible.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon reveals the new starters for next mainline game, Winds and Waves - Polygon.com",
+    "url": "https://www.polygon.com/pokemon-gen-10-winds-waves-starters/",
+    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
+    "source": "Polygon.com",
+    "domain": "polygon.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon Winds and Waves: Everything we know so far - Eurogamer.net",
+    "url": "https://www.eurogamer.net/pokemon-winds-and-waves-everything-we-know-so-far",
+    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
+    "source": "Eurogamer.net",
+    "domain": "eurogamer.net",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon Presents February 2026: Every Announcement - How Would You Rate It? - Nintendo Life",
+    "url": "https://www.nintendolife.com/guides/pokemon-presents-february-2026-every-announcement-how-would-you-rate-it",
+    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
+    "needsResolve": false
+   },
+   {
     "title": "Get Ready for Pok\u00e9mon TCG: 30th Celebration - Pokemon.com",
     "url": "https://www.pokemon.com/uk/news/get-ready-for-pokemon-tcg-30th-celebration",
     "published": "Mon, 01 Jun 2026 07:00:00 GMT",
@@ -855,107 +1073,43 @@
     "needsResolve": false
    },
    {
-    "title": "POK\u00c9MON WINDS & WAVES: New POK\u00c9MON Games Share Trailer, Release Dates, and Starters - Nerdist",
-    "url": "https://nerdist.com/article/pokemon-winds-waves-new-games-share-trailer-release-dates-and-starters/",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "Nerdist",
-    "domain": "nerdist.com",
+    "title": "Pok\u00e9mon Day 2026 will likely bring major announcements - Polygon.com",
+    "url": "https://www.polygon.com/pokemon-day-2026-when-what-to-expect/",
+    "published": "Wed, 28 Jan 2026 08:00:00 GMT",
+    "source": "Polygon.com",
+    "domain": "polygon.com",
     "needsResolve": false
    },
    {
-    "title": "Pok\u00e9mon FireRed Version and Pok\u00e9mon LeafGreen Version are now available - Nintendo",
-    "url": "https://www.nintendo.com/us/whatsnew/pokemon-firered-version-and-pokemon-leafgreen-version-are-now-available/",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "Nintendo",
-    "domain": "nintendo.com",
+    "title": "Pok\u00e9mon's Trading Card Game Is Getting A Movie In 2027 - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/08/pokemons-trading-card-game-is-getting-a-movie-in-2027",
+    "published": "Sun, 30 Aug 2026 07:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
     "needsResolve": false
    },
    {
-    "title": "Pok\u00e9mon Winds and Waves release date leak suggests long wait for Gen 10 Switch 2 game - Notebookcheck",
-    "url": "https://www.notebookcheck.net/Pokemon-Winds-and-Waves-release-date-leak-suggests-long-wait-for-Gen-10-Switch-2-game.1385346.0.html",
-    "published": "Wed, 02 Sep 2026 07:00:00 GMT",
-    "source": "Notebookcheck",
-    "domain": "notebookcheck.net",
+    "title": "Pok\u00e9mon FireRed And LeafGreen Officially Revealed For Switch - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/02/pokemon-firered-and-leafgreen-officially-revealed-for-switch",
+    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
     "needsResolve": false
    },
    {
-    "title": "Pok\u00e9mon Gen 10 Revealed: Winds and Waves Launching For Nintendo Switch 2 in 2027 - IGN",
-    "url": "https://www.ign.com/articles/pokemon-gen-10-revealed",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "IGN",
-    "domain": "ign.com",
-    "needsResolve": false
-   },
-   {
-    "title": "How to Play the Pok\u00e9mon Games in Chronological Order - IGN",
-    "url": "https://www.ign.com/articles/pokemon-games-in-order",
-    "published": "Fri, 13 Mar 2026 07:00:00 GMT",
-    "source": "IGN",
-    "domain": "ign.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Winds and Waves Announced - Gen 10 Starters Revealed, Release Date Delayed to 2027 - VICE",
-    "url": "https://www.vice.com/en/article/pokemon-winds-and-waves-announced-gen-10-starters-revealed-release-date-delayed-to-2027/",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "VICE",
-    "domain": "vice.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Nintendo Switch 2 said to receive three classic Pok\u00e9mon games soon - Notebookcheck",
-    "url": "https://www.notebookcheck.net/Nintendo-Switch-2-said-to-receive-three-classic-Pokemon-games-soon.1370418.0.html",
-    "published": "Mon, 17 Aug 2026 07:00:00 GMT",
-    "source": "Notebookcheck",
-    "domain": "notebookcheck.net",
-    "needsResolve": false
-   },
-   {
-    "title": "Ranking the best Pokemon games from worst to best - GamesRadar+",
-    "url": "https://www.gamesradar.com/best-pokemon-games/",
-    "published": "Wed, 23 Sep 2026 07:00:00 GMT",
-    "source": "GamesRadar+",
-    "domain": "gamesradar.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Winds And Waves Is Arriving Next Year - Game Informer",
-    "url": "https://gameinformer.com/pokemon-presents/2026/02/27/pokemon-winds-and-waves-is-arriving-next-year",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "Game Informer",
-    "domain": "gameinformer.com",
-    "needsResolve": false
-   },
-   {
-    "title": "All Pok\u00e9mon games in order: release order, timeline, and where to start in 2026 - Digital Trends",
-    "url": "https://www.digitaltrends.com/gaming/pokemon-games-in-order/",
-    "published": "Mon, 13 Apr 2026 07:00:00 GMT",
-    "source": "Digital Trends",
-    "domain": "digitaltrends.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Continues 30th Celebrations with the Unveiling of Pok\u00e9mon Winds and Pok\u00e9mon Waves, the Newest Entries in the Pok\u00e9mon Video Game Series - Pokemon Press",
-    "url": "https://press.pokemon.com/en/Pokemon-Continues-30th-Celebrations-with-the-Unveiling-of-Pokemon-Wind",
-    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
-    "source": "Pokemon Press",
-    "domain": "press.pokemon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Pok\u00e9mon Pokopia , Launching on March 5, 2026, is Available for Preorder Now! - Pokemon.com",
-    "url": "https://www.pokemon.com/uk/news/pokemon-pokopia-launching-on-march-5-2026-is-available-for-preorder-now",
-    "published": "Tue, 11 Nov 2025 08:00:00 GMT",
+    "title": "Pok\u00e9mon Champions Comes to Android and iOS on June 17 - Pokemon.com",
+    "url": "https://www.pokemon.com/us/news/pokemon-champions-comes-to-android-and-ios-on-june-17",
+    "published": "Wed, 03 Jun 2026 07:00:00 GMT",
     "source": "Pokemon.com",
     "domain": "pokemon.com",
     "needsResolve": false
    },
    {
-    "title": "The Pok\u00e9mon Company Group Reveals 2026 Pok\u00e9mon Day Plans, Including Pok\u00e9mon Presents Video Presentation Celebrating 30 Years of the Brand - Pokemon Press",
-    "url": "https://press.pokemon.com/en/The-Pokemon-Company-Group-Reveals-2026-Pokemon-Day-Plans-Including-Pok",
-    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
-    "source": "Pokemon Press",
-    "domain": "press.pokemon.com",
+    "title": "Pok\u00e9mon-Themed Mini Game Boy Announced, Though It's Not What You Think - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/02/pokemon-themed-mini-game-boy-announced-though-its-not-what-you-think",
+    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
     "needsResolve": false
    },
    {
@@ -965,9 +1119,449 @@
     "source": "Pokemon.com",
     "domain": "pokemon.com",
     "needsResolve": false
+   },
+   {
+    "title": "\"We Thought It Would Be Fun\" - Nintendo Explains Why Pok\u00e9mon FireRed & LeafGreen Aren't On Switch Online - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/02/we-thought-it-would-be-fun-nintendo-explains-why-pokemon-firered-and-leafgreen-arent-on-switch-online",
+    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Check Out Every Pok\u00e9mon TCG Product Release in October 2026 - Pokemon.com",
+    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-october-2026",
+    "published": "Thu, 01 Oct 2026 07:00:00 GMT",
+    "source": "Pokemon.com",
+    "domain": "pokemon.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Check Out Every Pok\u00e9mon TCG Product Release in September 2026 - Pokemon.com",
+    "url": "https://www.pokemon.com/us/news/check-out-every-pokemon-tcg-product-release-in-september-2026",
+    "published": "Tue, 01 Sep 2026 07:00:00 GMT",
+    "source": "Pokemon.com",
+    "domain": "pokemon.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pokemon Winds And Waves Are Skipping Nintendo Switch, And That\u2019s A Good Thing - GameSpot",
+    "url": "https://www.gamespot.com/articles/pokemon-winds-and-waves-are-skipping-nintendo-switch-and-thats-a-good-thing/1100-6538477/",
+    "published": "Fri, 27 Feb 2026 08:00:00 GMT",
+    "source": "GameSpot",
+    "domain": "gamespot.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon FireRed and LeafGreen are coming to Nintendo Switch - Polygon.com",
+    "url": "https://www.polygon.com/pokemon-fire-red-leaf-green-switch-announcement/",
+    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
+    "source": "Polygon.com",
+    "domain": "polygon.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Game Freak's Beast Of Reincarnation Gets August Release Date - Game Informer",
+    "url": "https://gameinformer.com/state-of-play/2026/02/12/game-freaks-beast-of-reincarnation-gets-august-release-date",
+    "published": "Thu, 12 Feb 2026 08:00:00 GMT",
+    "source": "Game Informer",
+    "domain": "gameinformer.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Talking Point: Our Pok\u00e9mon Presents 2026 Predictions - What Are You Hoping For? - Nintendo Life",
+    "url": "https://www.nintendolife.com/features/talking-point-our-pokemon-presents-2026-predictions-what-are-you-hoping-for",
+    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pokemon Legends Z-A: Is It Playable On Nintendo Switch 1 and 2? - Turtle Beach",
+    "url": "https://www.turtlebeach.com/blog/pokemon-legends-z-a-is-it-playable-on-nintendo-switch-1-and-2",
+    "published": "Mon, 13 Oct 2025 07:00:00 GMT",
+    "source": "Turtle Beach",
+    "domain": "turtlebeach.com",
+    "needsResolve": false
+   },
+   {
+    "title": "2025 Pok\u00e9mon TCG Standard Format Rotation Announcement - Pokemon.com",
+    "url": "https://www.pokemon.com/us/news/2025-pokemon-tcg-standard-format-rotation-announcement",
+    "published": "Thu, 09 Jan 2025 08:00:00 GMT",
+    "source": "Pokemon.com",
+    "domain": "pokemon.com",
+    "needsResolve": false
+   },
+   {
+    "title": "New Pok\u00e9mon Legends: Z-A DLC announced alongside a brand new Pok\u00e9mon game - Esports.gg",
+    "url": "https://esports.gg/news/pokemon/new-pokemon-legends-z-a-dlc-announced-alongside-a-brand-new-pokemon-game/",
+    "published": "Fri, 12 Sep 2025 07:00:00 GMT",
+    "source": "Esports.gg",
+    "domain": "esports.gg",
+    "needsResolve": false
+   },
+   {
+    "title": "Retro Gamers Talk: New Pokemon Game Rumours, Speculations, & Gen 10 Expectations - Retro Dodo",
+    "url": "https://retrododo.com/new-pokemon-game-rumours/",
+    "published": "Fri, 24 May 2024 07:00:00 GMT",
+    "source": "Retro Dodo",
+    "domain": "retrododo.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon Presents Announced For 27th February, 2026 - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/02/pokemon-presents-announced-for-27th-february-2026",
+    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon fans can play a gorgeous new remake this month - GAMINGbible",
+    "url": "https://www.gamingbible.com/news/platform/nintendo/pokemon-gorgeous-new-remake-439765-20250508",
+    "published": "Thu, 08 May 2025 07:00:00 GMT",
+    "source": "GAMINGbible",
+    "domain": "gamingbible.com",
+    "needsResolve": false
+   },
+   {
+    "title": "'90s Parents: You're Gonna Want to Get Your Kids the New Pok\u00e9mon Game \u2014 and Play It Yourself After Bedtime - Popsugar",
+    "url": "https://www.popsugar.com/family/nintendo-pokemon-let-go-pikachu-eevee-games-review-45500656",
+    "published": "Thu, 20 Dec 2018 08:00:00 GMT",
+    "source": "Popsugar",
+    "domain": "popsugar.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon Champions Update Adds Z Mega Evolutions This September - Nintendo Life",
+    "url": "https://www.nintendolife.com/news/2026/08/pokemon-champions-update-adds-z-mega-evolutions-this-september",
+    "published": "Sun, 30 Aug 2026 07:00:00 GMT",
+    "source": "Nintendo Life",
+    "domain": "nintendolife.com",
+    "needsResolve": false
+   },
+   {
+    "title": "How to play the Pok\u00e9mon games in order: Complete timeline of story and release - Radio Times",
+    "url": "https://www.radiotimes.com/technology/gaming/pokemon-games-in-order/",
+    "published": "Thu, 16 Oct 2025 07:00:00 GMT",
+    "source": "Radio Times",
+    "domain": "radiotimes.com",
+    "needsResolve": false
+   },
+   {
+    "title": "You can get Pok\u00e9mon TCG's Ascended Heroes ETB from Target if you're quick - Wargamer",
+    "url": "https://www.wargamer.com/pokemon-trading-card-game/ascended-heroes-etb-target-launch",
+    "published": "Fri, 20 Feb 2026 08:00:00 GMT",
+    "source": "Wargamer",
+    "domain": "wargamer.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Review: Pok\u00e9mon Brilliant Diamond and Shining Pearl are Pok\u00e9mon Games. Not Really Sure What You Expected Here, To Be Honest - hard-drive.net",
+    "url": "https://hard-drive.net/review-pokemon-brilliant-diamond-and-shining-pearl-are-pokemon-games-not-really-sure-what-you-expected-here-to-be-honest/",
+    "published": "Sun, 21 Nov 2021 08:00:00 GMT",
+    "source": "hard-drive.net",
+    "domain": "hard-drive.net",
+    "needsResolve": false
+   },
+   {
+    "title": "Gotta catch 'em all: New Pok\u00e9mon games and a Pok\u00e9 Ball controller coming to Nintendo Switch - GeekWire",
+    "url": "https://www.geekwire.com/2018/gotta-catch-em-new-pokemon-games-poke-ball-controller-coming-nintendo-switch/",
+    "published": "Wed, 30 May 2018 07:00:00 GMT",
+    "source": "GeekWire",
+    "domain": "geekwire.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon finally explains why we haven't had a new Eevee evolution since 2013 - GAMINGbible",
+    "url": "https://www.gamingbible.com/news/pokemon-explains-no-new-eevee-563121-20241121",
+    "published": "Sun, 24 Nov 2024 08:00:00 GMT",
+    "source": "GAMINGbible",
+    "domain": "gamingbible.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Pok\u00e9mon Legends: Z-A has fans begging for legit voice acting - Polygon.com",
+    "url": "https://www.polygon.com/pokemon-legends-za-voice-acting-franchise-game-freak-switch/",
+    "published": "Sat, 18 Oct 2025 07:00:00 GMT",
+    "source": "Polygon.com",
+    "domain": "polygon.com",
+    "needsResolve": false
    }
   ],
-  "my chemical romance concert dates": [
+  "my chemical romance band concert": [
+   {
+    "title": "Dallas Cowboys Cheerleaders Score Victory Over My Chemical Romance - TV Insider",
+    "url": "https://www.tvinsider.com/1300256/dallas-cowboys-cheerleader-victory-my-chemical-romance/",
+    "published": "Wed, 28 Oct 2026 13:10:26 GMT",
+    "source": "TV Insider",
+    "domain": "tvinsider.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders sue My Chemical Romance - FOX 4 News Dallas-Fort Worth",
+    "url": "https://www.fox4news.com/news/dallas-cowboys-cheerleaders-owner-sues-my-chemical-romance-over-look-alike-uniforms-concert",
+    "published": "Sun, 25 Oct 2026 15:23:24 GMT",
+    "source": "FOX 4 News Dallas-Fort Worth",
+    "domain": "fox4news.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Reach Agreement With My Chemical Romance Over Bizarre Concert Costumes - VICE",
+    "url": "https://www.vice.com/en/article/dallas-cowboys-cheerleaders-reach-agreement-with-my-chemical-romance-over-bizarre-concert-costumes/",
+    "published": "Wed, 28 Oct 2026 15:36:41 GMT",
+    "source": "VICE",
+    "domain": "vice.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Why a My Chemical Romance show led to a Cowboys Cheerleaders lawsuit - MySA",
+    "url": "https://www.mysanantonio.com/entertainment/article/mcr-dallas-cowboys-cheerleaders-22498100.php",
+    "published": "Wed, 28 Oct 2026 19:12:12 GMT",
+    "source": "MySA",
+    "domain": "mysanantonio.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance changes costumes amid legal dispute - KarloBag.eu",
+    "url": "https://karlobag.eu/en/music/my-chemical-romance-drops-costumes-resembling-dallas-cowboys-cheerleaders-unifor-j9ma9/",
+    "published": "Thu, 29 Oct 2026 02:11:26 GMT",
+    "source": "KarloBag.eu",
+    "domain": "karlobag.eu",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders take legal action against My Chemical Romance over onstage costumes - NBC News",
+    "url": "https://www.nbcnews.com/news/us-news/dallas-cowboys-cheerleaders-seek-legal-action-chemical-romance-rcna605375",
+    "published": "Sat, 24 Oct 2026 15:43:25 GMT",
+    "source": "NBC News",
+    "domain": "nbcnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance Will Drop Dallas Cowboys Cheerleader Uniforms to Resolve Lawsuit: Report - Billboard",
+    "url": "https://www.billboard.com/pro/my-chemical-romance-drop-dallas-cowboys-cheerleader-outfits/",
+    "published": "Tue, 27 Oct 2026 20:40:38 GMT",
+    "source": "Billboard",
+    "domain": "billboard.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders sue My Chemical Romance amid Hollywood Bowl run - KTLA",
+    "url": "https://ktla.com/news/local-news/dallas-cowboys-cheerleaders-sue-my-chemical-romance/",
+    "published": "Tue, 27 Oct 2026 00:13:10 GMT",
+    "source": "KTLA",
+    "domain": "ktla.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance Waves White Flag in Dallas Cowboys Cheerleader Flap: \u2018Agreement Reached\u2019 - Rolling Stone Australia",
+    "url": "https://au.rollingstone.com/music/music-news/my-chemical-romance-dallas-cowboys-cheerleaders-lawsuit-102793/",
+    "published": "Thu, 29 Oct 2026 00:24:45 GMT",
+    "source": "Rolling Stone Australia",
+    "domain": "au.rollingstone.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Score Victory Over My Chemical Romance Concert Stunt Amid Historic Unionization Push - IMDb",
+    "url": "https://www.imdb.com/news/ni66083813/?ref_",
+    "published": "Wed, 28 Oct 2026 14:14:59 GMT",
+    "source": "IMDb",
+    "domain": "imdb.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders' owner sues My Chemical Romance, Live Nation over look-alike uniforms worn during concerts - CBS News",
+    "url": "https://www.cbsnews.com/texas/news/my-chemical-romance-dallas-cowboys-cheerleaders-uniforms-live-nation-concert-hollywood-bowl/",
+    "published": "Tue, 27 Oct 2026 12:24:00 GMT",
+    "source": "CBS News",
+    "domain": "cbsnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders take legal action against rock band My Chemical Romance - Fort Worth Star-Telegram",
+    "url": "https://www.star-telegram.com/news/local/article317803419.html",
+    "published": "Tue, 27 Oct 2026 20:17:00 GMT",
+    "source": "Fort Worth Star-Telegram",
+    "domain": "star-telegram.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Sue My Chemical Romance Over Uniforms - Law Commentary",
+    "url": "https://www.lawcommentary.com/articles/dallas-cowboys-cheerleaders-sue-my-chemical-romance",
+    "published": "Tue, 27 Oct 2026 05:34:48 GMT",
+    "source": "Law Commentary",
+    "domain": "lawcommentary.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Take Legal Action Against My Chemical Romance Over Uniforms Worn at Concert - TheWrap",
+    "url": "https://www.thewrap.com/creative-content/music/dallas-cowboys-cheerleaders-legal-action-my-chemical-romance-concert-uniforms/",
+    "published": "Sat, 24 Oct 2026 03:56:58 GMT",
+    "source": "TheWrap",
+    "domain": "thewrap.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Owner Sues My Chemical Romance, Live Nation Over Stage Costumes - TicketNews",
+    "url": "https://www.ticketnews.com/2026/10/dallas-cowboys-cheerleaders-sue-my-chemical-romance-live-nation/",
+    "published": "Wed, 28 Oct 2026 02:31:06 GMT",
+    "source": "TicketNews",
+    "domain": "ticketnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance Face Legal Action From Dallas Cowboys Cheerleaders Over Stage Costumes - Rolling Stone",
+    "url": "https://www.rollingstone.com/music/music-news/my-chemical-romance-legal-action-dallas-cowboys-cheerleaders-1235647551/",
+    "published": "Sat, 24 Oct 2026 13:47:22 GMT",
+    "source": "Rolling Stone",
+    "domain": "rollingstone.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Win Legal War With My Chemical Romance Over Fake Uniforms - TMZ",
+    "url": "https://www.tmz.com/2026/10/27/dallas-cowboys-cheerleaders-win-legal-battle-with-my-chemical-romance/",
+    "published": "Tue, 27 Oct 2026 18:50:31 GMT",
+    "source": "TMZ",
+    "domain": "tmz.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Can the Dallas Cowboys Cheerleaders Really Sue My Chemical Romance? Here\u2019s What Experts Say - Billboard",
+    "url": "https://www.billboard.com/pro/can-the-dallas-cowboys-cheerleaders-sue-my-chemical-romance/",
+    "published": "Mon, 26 Oct 2026 18:01:37 GMT",
+    "source": "Billboard",
+    "domain": "billboard.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance begins historic Hollywood Bowl run, lead singer\u2019s dad hints at new music - KTLA",
+    "url": "https://ktla.com/entertainment/my-chemical-romance-hollywood-bowl-new-music/",
+    "published": "Thu, 22 Oct 2026 19:47:29 GMT",
+    "source": "KTLA",
+    "domain": "ktla.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders sue My Chemical Romance over costumed gunfight scene - San Antonio Express-News",
+    "url": "https://www.expressnews.com/sports/cowboys/article/cowboys-cheerleaders-sue-my-chemical-romance-22496859.php",
+    "published": "Tue, 27 Oct 2026 18:03:07 GMT",
+    "source": "San Antonio Express-News",
+    "domain": "expressnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders victorious in bitter uniform battle with My Chemical Romance - New York Post",
+    "url": "https://nypost.com/2026/10/27/us-news/dallas-cowboy-cheerleaders-victorious-over-my-chemical-romance/",
+    "published": "Tue, 27 Oct 2026 20:36:00 GMT",
+    "source": "New York Post",
+    "domain": "nypost.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance LEGO Set Gets Second Chance After Previous Rejection - Reckless Press",
+    "url": "https://recklesspress.com/news/my-chemical-romance-lego-set-gets-second-chance-after-previous-rejection/",
+    "published": "Wed, 28 Oct 2026 11:40:55 GMT",
+    "source": "Reckless Press",
+    "domain": "recklesspress.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance Quickly Settles Dallas Cowboys Cheerleaders Lawsuit - Digital Music News",
+    "url": "https://www.digitalmusicnews.com/2026/10/27/my-chemical-romance-settles-cheerleader-lawsuit/",
+    "published": "Tue, 27 Oct 2026 22:11:46 GMT",
+    "source": "Digital Music News",
+    "domain": "digitalmusicnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Cowboys Cheerleaders\u2019 parent company sues alt-rock band My Chemical Romance - KERA News Breakthroughs",
+    "url": "https://www.kera.org/2026/10/26/cowboys-cheerleaders-parent-company-sues-alt-rock-band-my-chemical-romance/",
+    "published": "Mon, 26 Oct 2026 16:13:00 GMT",
+    "source": "KERA News Breakthroughs",
+    "domain": "kera.org",
+    "needsResolve": false
+   },
+   {
+    "title": "The Dallas Cowboys cheerleaders never tire of winning: the new legal battle has given them another reason to celebrate - MARCA",
+    "url": "https://www.marca.com/en/nfl/dallas-cowboys/2026/10/28/the-dallas-cowboys-cheerleaders-never-tire-of-winning-the-new-legal-battle-has-given-them-another-reason-to-celebrate.html",
+    "published": "Wed, 28 Oct 2026 15:39:03 GMT",
+    "source": "MARCA",
+    "domain": "marca.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance Reach Agreement with Dallas Cowboys Cheerleaders over Staged Shootout - Exclaim!",
+    "url": "https://exclaim.ca/music/article/my-chemical-romance-face-legal-action-from-dallas-cowboys-cheerleaders-over-staged-shootout",
+    "published": "Wed, 28 Oct 2026 11:37:25 GMT",
+    "source": "Exclaim!",
+    "domain": "exclaim.ca",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance is being sued by Dallas Cowboys cheerleaders (yes, really) - AudioPhix",
+    "url": "https://audiophix.com/my-chemical-romance-being-sued-by-dallas-cowboys-cheerleaders-yes-really",
+    "published": "Sun, 25 Oct 2026 12:30:00 GMT",
+    "source": "AudioPhix",
+    "domain": "audiophix.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Take Legal Action Against My Chemical Romance Over Onstage Uniforms - E! News",
+    "url": "https://www.eonline.com/news/1437472/dallas-cowboys-cheerleaders-sue-my-chemical-romance-over-onstage-uniforms",
+    "published": "Mon, 26 Oct 2026 14:57:00 GMT",
+    "source": "E! News",
+    "domain": "eonline.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance Faces Legal Action Over Dallas Cowboys Cheerleaders Costumes - People.com",
+    "url": "https://people.com/my-chemical-romance-face-legal-action-from-dallas-cowboys-cheerleaders-over-stage-costumes-12191883",
+    "published": "Sat, 24 Oct 2026 20:28:52 GMT",
+    "source": "People.com",
+    "domain": "people.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Win Fight Against Rock Band Over Fake Uniforms and Concert Gunfight - Wide Open Country",
+    "url": "https://www.wideopencountry.com/dallas-cowboys-cheerleaders-win-fight-against-rock-band-over-fake-uniforms-and-concert-gunfight/",
+    "published": "Wed, 28 Oct 2026 15:57:48 GMT",
+    "source": "Wide Open Country",
+    "domain": "wideopencountry.com",
+    "needsResolve": false
+   },
+   {
+    "title": "My Chemical Romance vs. Dallas Cowboys Cheerleaders Kicks Off - Digital Music News",
+    "url": "https://www.digitalmusicnews.com/2026/10/25/my-chemical-romance-dallas-cheerleaders/",
+    "published": "Mon, 26 Oct 2026 04:56:06 GMT",
+    "source": "Digital Music News",
+    "domain": "digitalmusicnews.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys cheerleaders sue My Chemical Romance over brand infringement - Yahoo",
+    "url": "https://www.yahoo.com/entertainment/music/articles/dallas-cowboys-cheerleaders-sue-chemical-185604120.html",
+    "published": "Mon, 26 Oct 2026 18:56:04 GMT",
+    "source": "Yahoo",
+    "domain": "yahoo.com",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders and My Chemical Romance Lawsuit Goes Back to Debbie Does Dallas: Legal Experts - Consequence of Sound",
+    "url": "https://consequence.net/2026/10/dallas-cowboys-cheerleaders-my-chemical-romance-debbie-does-dallas-interview/",
+    "published": "Tue, 27 Oct 2026 18:30:15 GMT",
+    "source": "Consequence of Sound",
+    "domain": "consequence.net",
+    "needsResolve": false
+   },
+   {
+    "title": "Dallas Cowboys Cheerleaders Sue My Chemical Romance Over Concert Costumes, Band Uses Them Again Anyway - BroBible",
+    "url": "https://brobible.com/sports/article/dallas-cowboys-cheerleaders-sue-my-chemical-romance/",
+    "published": "Mon, 26 Oct 2026 15:22:48 GMT",
+    "source": "BroBible",
+    "domain": "brobible.com",
+    "needsResolve": false
+   },
    {
     "title": "My Chemical Romance Agree to Drop Dallas Cowboys Cheerleaders-Inspired Costumes After Legal Dispute - Consequence of Sound",
     "url": "https://consequence.net/2026/10/my-chemical-romance-agree-to-drop-dallas-cowboys-cheerleaders-inspired-costumes-after-legal-dispute/",
@@ -977,637 +1571,43 @@
     "needsResolve": false
    },
    {
-    "title": "Where to Buy Last-Minute My Chemical Romance Hollywood Bowl Tickets - Rolling Stone",
-    "url": "https://www.rollingstone.com/product-recommendations/tickets/my-chemical-romance-black-parade-tour-tickets-1235607594/",
-    "published": "Wed, 30 Sep 2026 07:00:00 GMT",
-    "source": "Rolling Stone",
-    "domain": "rollingstone.com",
+    "title": "My Chemical Romance faces legal action over Dallas Cowboys Cheerleaders stunt - Global News",
+    "url": "https://globalnews.ca/news/12121497/my-chemical-romance-faces-legal-action-dallas-cowboys-cheerleaders-pro-silver-star/",
+    "published": "Mon, 26 Oct 2026 19:14:04 GMT",
+    "source": "Global News",
+    "domain": "globalnews.ca",
     "needsResolve": false
    },
    {
-    "title": "3 Lingering Questions My Chemical Romance Need to Answer After Their \u2018Black Parade\u2019 North American Tour - Loudwire",
-    "url": "https://loudwire.com/my-chemical-romance-tour-questions-2026/",
-    "published": "Tue, 15 Sep 2026 07:00:00 GMT",
-    "source": "Loudwire",
-    "domain": "loudwire.com",
+    "title": "Concert Review: My Chemical Romance at Target Field - Rock DNA Magazine",
+    "url": "https://www.rockdnamag.com/post/concert-review-my-chemical-romance-at-target-field",
+    "published": "Thu, 03 Sep 2026 07:00:00 GMT",
+    "source": "Rock DNA Magazine",
+    "domain": "rockdnamag.com",
     "needsResolve": false
    },
    {
-    "title": "My Chemical Romance Setlist: What to Expect on the 2026 Black Parade Tour - Ticketmaster Blog",
-    "url": "https://blog.ticketmaster.com/my-chemical-romance-setlist/",
-    "published": "Mon, 10 Aug 2026 07:00:00 GMT",
-    "source": "Ticketmaster Blog",
-    "domain": "blog.ticketmaster.com",
+    "title": "My Chemical Romance Sued Over Dallas Cowboys Cheerleaders-Inspired Outfits Worn During Concert - IMDb",
+    "url": "https://www.imdb.com/de/news/ni66079393/?ref_",
+    "published": "Sun, 25 Oct 2026 21:41:40 GMT",
+    "source": "IMDb",
+    "domain": "imdb.com",
     "needsResolve": false
    },
    {
-    "title": "How to secure My Chemical Romance concert tickets for under $100 to their New York show - NJ.com",
-    "url": "https://www.nj.com/live-entertainment/2026/08/how-to-secure-my-chemical-romance-concert-tickets-for-under-100-to-their-new-york-show.html",
-    "published": "Sat, 08 Aug 2026 07:00:00 GMT",
-    "source": "NJ.com",
-    "domain": "nj.com",
+    "title": "My Chemical Romance at odds with Cowboys cheerleaders over outfits - Bergen Record",
+    "url": "https://www.northjersey.com/story/entertainment/music/2026/10/27/my-chemical-romance-cowboys-cheerleaders-outfits/92448274007/",
+    "published": "Tue, 27 Oct 2026 10:42:00 GMT",
+    "source": "Bergen Record",
+    "domain": "northjersey.com",
     "needsResolve": false
    },
    {
-    "title": "My Chemical Romance at Comerica Park set times, tickets, parking, more - The Detroit News",
-    "url": "https://www.detroitnews.com/story/entertainment/music/2026/08/18/my-chemical-romance-at-comerica-park-set-times-parking-tickets-what-to-know-before-bands-show/91336633007/",
-    "published": "Tue, 18 Aug 2026 07:00:00 GMT",
-    "source": "The Detroit News",
-    "domain": "detroitnews.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Dallas Cowboys Cheerleaders Sue My Chemical Romance - Consequence of Sound",
-    "url": "https://consequence.net/2026/10/dallas-cowboys-cheerleaders-sue-my-chemical-romance/",
-    "published": "Sat, 24 Oct 2026 14:05:37 GMT",
-    "source": "Consequence of Sound",
-    "domain": "consequence.net",
-    "needsResolve": false
-   },
-   {
-    "title": "THE MARS VOLTA Announce U.S. Tour Dates, Including MY CHEMICAL ROMANCE Support Slot - Metal Injection",
-    "url": "https://metalinjection.net/tour-dates/the-mars-volta-announce-u-s-tour-dates-including-my-chemical-romance-support-slot",
-    "published": "Wed, 08 Apr 2026 14:03:56 GMT",
-    "source": "Metal Injection",
-    "domain": "metalinjection.net",
-    "needsResolve": false
-   },
-   {
-    "title": "What to Expect at My Chemical Romance\u2019s The Black Parade Tour - Event Tickets Center",
-    "url": "https://www.eventticketscenter.com/blog/my-chemical-romance-black-parade-tour-what-to-expect/1206/b",
-    "published": "Wed, 05 Aug 2026 07:00:00 GMT",
-    "source": "Event Tickets Center",
-    "domain": "eventticketscenter.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance delay first show of 2026 world tour - NME",
-    "url": "https://www.nme.com/news/music/my-chemical-romance-delay-first-show-of-2026-world-tour-3922742",
-    "published": "Mon, 12 Jan 2026 08:00:00 GMT",
-    "source": "NME",
-    "domain": "nme.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance's \"Long Live\" The Black Parade 2026 UK tour dates: How to buy tickets - Radio X",
-    "url": "https://www.radiox.co.uk/news/music/my-chemical-romance-the-black-parade-uk-dates-2026/",
-    "published": "Tue, 05 May 2026 07:00:00 GMT",
-    "source": "Radio X",
-    "domain": "radiox.co.uk",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Are Already Planning For Next Halloween With Special Hollywood Bowl Shows - UPROXX",
-    "url": "https://uproxx.com/indie/my-chemical-romance-2026-tour-dates-halloween/",
-    "published": "Tue, 18 Nov 2025 08:00:00 GMT",
-    "source": "UPROXX",
-    "domain": "uproxx.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance The Black Parade 2026 Tour - Nissan Stadium",
-    "url": "https://nissanstadium.com/event/my-chemical-romance-the-black-parade-2026-tour/",
-    "published": "Mon, 22 Sep 2025 23:39:03 GMT",
-    "source": "Nissan Stadium",
-    "domain": "nissanstadium.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance\u2019s 2026 \u201cThe Black Parade Tour\u201d: How to Get Last-Minute Tickets - Consequence of Sound",
-    "url": "https://consequence.net/2026/08/my-chemical-romances-the-black-parade-last-minute-tickets-deals/",
-    "published": "Sat, 08 Aug 2026 07:00:00 GMT",
-    "source": "Consequence of Sound",
-    "domain": "consequence.net",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce 17 Additional 2026 Dates For The Black Parade Stadium World Tour - Billboard",
-    "url": "https://www.billboard.com/music/rock/my-chemical-romance-17-new-2026-black-parade-tour-dates-1236071670/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Billboard",
-    "domain": "billboard.com",
-    "needsResolve": false
-   },
-   {
-    "title": "All The Changes We Noticed in My Chemical Romance's 2026 'Black Parade' Tour - Loudwire",
-    "url": "https://loudwire.com/my-chemical-romance-black-parade-2026-tour-explained/",
-    "published": "Mon, 26 Jan 2026 08:00:00 GMT",
-    "source": "Loudwire",
-    "domain": "loudwire.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announces \u2018Black Parade 2026\u2019 Tour Dates - Variety",
-    "url": "https://variety.com/2025/music/news/my-chemical-romance-black-parade-2026-tour-dates-1236526059/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Variety",
-    "domain": "variety.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Launch \u201cThe Black Parade\u201d North American Tour in New York: Setlist + Video - Consequence of Sound",
-    "url": "https://consequence.net/2026/08/my-chemical-romance-2026-tour-kickoff-new-york/",
-    "published": "Mon, 10 Aug 2026 07:00:00 GMT",
-    "source": "Consequence of Sound",
-    "domain": "consequence.net",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance share epic support act line-up for 2026 UK and European tour with Echo & The Bunnymen, Skunk Anansie, Sunny Day Real Estate, Interpol and more - NME",
-    "url": "https://www.nme.com/news/music/my-chemical-romance-share-epic-support-act-line-up-for-2026-uk-and-european-tour-with-echo-the-bunnymen-skunk-anansie-sunny-day-real-estate-interpol-and-more-3913437",
-    "published": "Fri, 28 Nov 2025 08:00:00 GMT",
-    "source": "NME",
-    "domain": "nme.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce 2026 Halloween Concerts at Hollywood Bowl - Consequence of Sound",
-    "url": "https://consequence.net/2025/11/my-chemical-romance-final-black-parade-tour-dates-hollywood-bowl/",
-    "published": "Tue, 18 Nov 2025 08:00:00 GMT",
-    "source": "Consequence of Sound",
-    "domain": "consequence.net",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance announce summer 2025 North American stadium tour in celebration of The Black Parade - MLB.com",
-    "url": "https://www.mlb.com/press-release/press-release-my-chemical-romance-announce-summer-2025-north-american-stadium-tour-in-celebration-of-the-black-parade",
-    "published": "Tue, 12 Nov 2024 08:00:00 GMT",
-    "source": "MLB.com",
-    "domain": "mlb.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announces 2026 Black Parade Tour Dates Honoring Classic Album's 20th Anniversary - People.com",
-    "url": "https://people.com/my-chemical-romance-announces-2026-black-parade-tour-dates-11814685",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "People.com",
-    "domain": "people.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Long Live \u2018The Black Parade\u2019: My Chemical Romance Extend Anniversary Tour - Rolling Stone",
-    "url": "https://www.rollingstone.com/music/music-news/my-chemical-romance-2026-black-parade-tour-dates-1235432149/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Rolling Stone",
-    "domain": "rollingstone.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance extends \"Black Parade Tour\" with 12 new shows across the U.S.: dates and how to get tickets - Time Out Worldwide",
-    "url": "https://www.timeout.com/usa/news/my-chemical-romance-extends-black-parade-tour-with-12-new-shows-across-the-u-s-dates-and-how-to-get-tickets-092525",
-    "published": "Thu, 25 Sep 2025 07:00:00 GMT",
-    "source": "Time Out Worldwide",
-    "domain": "timeout.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce \u2018The Black Parade\u2019 2026 World Tour Dates - Loudwire",
-    "url": "https://loudwire.com/my-chemical-romance-black-parade-2026-world-tour-dates/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Loudwire",
-    "domain": "loudwire.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce 2026 \"The Black Parade\" Tour Dates - Consequence of Sound",
-    "url": "https://consequence.net/2025/09/my-chemical-romance-2026-the-black-parade-tour-dates/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Consequence of Sound",
-    "domain": "consequence.net",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Reveal UK/EU Tour Support Acts - Rock Sound",
-    "url": "https://rocksound.tv/news/my-chemical-romance-reveal-uk-eu-tour-support-acts",
-    "published": "Wed, 26 Nov 2025 08:00:00 GMT",
-    "source": "Rock Sound",
-    "domain": "rocksound.tv",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Adds The Black Parade 2026 Tour Dates In U.S. & Europe - JamBase",
-    "url": "https://www.jambase.com/article/my-chemical-romance-black-parade-tour-dates-2026",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "JamBase",
-    "domain": "jambase.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announces 2026 South American Tour: Here Are the Dates - Billboard",
-    "url": "https://www.billboard.com/music/rock/my-chemical-romance-2026-south-american-tour-dates-1236006039/",
-    "published": "Tue, 24 Jun 2025 07:00:00 GMT",
-    "source": "Billboard",
-    "domain": "billboard.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance: Previous Europe Tour Dates for 2026 - Impericon",
-    "url": "https://www.impericon.com/blogs/magazine/my-chemical-romance-previous-europe-tour-dates-for-2026",
-    "published": "Wed, 24 Sep 2025 07:00:00 GMT",
-    "source": "Impericon",
-    "domain": "impericon.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce \u2018The Black Parade\u2019 2026 Tour - Rock Sound",
-    "url": "https://rocksound.tv/news/my-chemical-romance-announce-the-black-parade-2026-tour",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Rock Sound",
-    "domain": "rocksound.tv",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Map Out Massive 2026 \u201cThe Black Parade\u201d Tour: How to Get Tickets - Consequence of Sound",
-    "url": "https://consequence.net/2025/09/my-chemical-romance-2026-black-parade-tour-how-to-get-tickets/",
-    "published": "Fri, 26 Sep 2025 07:00:00 GMT",
-    "source": "Consequence of Sound",
-    "domain": "consequence.net",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announces 2025 Stadium Tour: See the Dates - Billboard",
-    "url": "https://www.billboard.com/music/rock/my-chemical-romance-2025-tour-dates-1235826748/",
-    "published": "Tue, 12 Nov 2024 08:00:00 GMT",
-    "source": "Billboard",
-    "domain": "billboard.com",
-    "needsResolve": false
-   },
-   {
-    "title": "'The Black Parade' is coming to San Antonio, and people are freaking out - MySA",
-    "url": "https://www.mysanantonio.com/entertainment/article/my-chemical-romance-tour-dates-21060914.php",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "MySA",
-    "domain": "mysanantonio.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce Black Parade 2026 Tour Dates - Pitchfork",
-    "url": "https://pitchfork.com/news/my-chemical-romance-announce-black-parade-2026-tour-dates/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Pitchfork",
-    "domain": "pitchfork.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance announce 2026 Black Parade tour w/ Iggy Pop, Modest Mouse, Mars Volta, more - BrooklynVegan",
-    "url": "https://www.brooklynvegan.com/my-chemical-romance-announce-2026-black-parade-tour-w-iggy-pop-modest-mouse-mars-volta-more/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "BrooklynVegan",
-    "domain": "brooklynvegan.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance announce Black Parade tour UK dates - BBC",
-    "url": "https://www.bbc.com/news/articles/cjr11zlj888o",
-    "published": "Mon, 11 Aug 2025 07:00:00 GMT",
-    "source": "BBC",
-    "domain": "bbc.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Announce 2026 Tour Dates - chorus.fm",
-    "url": "https://chorus.fm/news/my-chemical-romance-announce-2026-tour-dates/",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "chorus.fm",
-    "domain": "chorus.fm",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance announce 2025 tour with Alice Cooper, Devo: Tickets, dates, more - USA Today",
-    "url": "https://www.usatoday.com/story/entertainment/music/2024/11/12/my-chemical-romance-2025-the-black-parade-tour/76233988007/",
-    "published": "Wed, 13 Nov 2024 08:00:00 GMT",
-    "source": "USA Today",
-    "domain": "usatoday.com",
-    "needsResolve": false
-   },
-   {
-    "title": "My Chemical Romance Confirm 2026 The Black Parade World Tour Dates - Knotfest",
-    "url": "https://knotfest.com/blogs/news/my-chemical-romance-confirm-2026-the-black-parade-world-tour-dates",
-    "published": "Mon, 22 Sep 2025 07:00:00 GMT",
-    "source": "Knotfest",
-    "domain": "knotfest.com",
-    "needsResolve": false
-   }
-  ],
-  "philippine peso exchange rate": [
-   {
-    "title": "HIGHEST US DOLLAR TO PHILIPPINE PESO EXCHANGE RATE (2014\u20132026)\ud83d\udcb8 The US dollar hits a new peak against the Philippine Peso, reaching \u20b164.025 as of October 28, 2026, according to data from the Bankers Association of the Philippines. #AllYou - Facebook",
-    "url": "https://www.facebook.com/sunstardavaonews/posts/highest-us-dollar-to-philippine-peso-exchange-rate-20142026the-us-dollar-hits-a-/1608441637990712/",
-    "published": "Thu, 29 Oct 2026 00:39:33 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "\u2018Don\u2019t panic,\u2019 Marcos says after peso\u2019s historic lows - Inquirer.net",
-    "url": "https://newsinfo.inquirer.net/2331968/dont-panic-marcos-says-after-pesos-historic-lows",
-    "published": "Wed, 28 Oct 2026 21:30:00 GMT",
-    "source": "Inquirer.net",
-    "domain": "newsinfo.inquirer.net",
-    "needsResolve": false
-   },
-   {
-    "title": "PHP/USD: Marcos Pledges to \u201cDo All We Can\u201d to Defend Philippine Peso - Bloomberg",
-    "url": "https://www.bloomberg.com/news/articles/2026-10-28/php-usd-marcos-pledges-to-do-all-we-can-to-defend-philippine-peso",
-    "published": "Wed, 28 Oct 2026 08:22:57 GMT",
-    "source": "Bloomberg",
-    "domain": "bloomberg.com",
-    "needsResolve": false
-   },
-   {
-    "title": "LOWEST IN HISTORY\ud83d\udcb8 The Philippine peso stood at \u20b164.00 against the US dollar as of October 27, 2026, according to data from the Bankers Association of the Philippines. The latest rate reflects the peso\u2019s continued weakness against the greenback. #AllYo - Facebook",
-    "url": "https://www.facebook.com/sunstardavaonews/posts/lowest-in-historythe-philippine-peso-stood-at-6400-against-the-us-dollar-as-of-o/1606900794811463/",
-    "published": "Tue, 27 Oct 2026 06:13:25 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Philippine peso\u2019s historic slide continues, hitting record low P64.17 per dollar - Rappler",
-    "url": "https://www.rappler.com/business/philippine-peso-dollar-exchange-rate-record-low-october-27-2026/",
-    "published": "Tue, 27 Oct 2026 09:45:06 GMT",
-    "source": "Rappler",
-    "domain": "rappler.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Marcos Urges Calm as Peso Ends Record-Low Streak; 65-per-Dollar Level Now in Sight - BigGo Finance",
-    "url": "https://finance.biggo.com/news/9a80caba-00fa-4b35-829a-c62432275221",
-    "published": "Wed, 28 Oct 2026 22:55:00 GMT",
-    "source": "BigGo Finance",
-    "domain": "finance.biggo.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso rebounds 14.5 cents to P64.025 vs dollar - Philstar.com",
-    "url": "https://www.philstar.com/business/2026/10/28/2566343/peso-rebounds-145-cents-p64025-vs-dollar",
-    "published": "Wed, 28 Oct 2026 09:36:00 GMT",
-    "source": "Philstar.com",
-    "domain": "philstar.com",
-    "needsResolve": false
-   },
-   {
-    "title": "When the peso buys less - Daily Tribune",
-    "url": "https://tribune.net.ph/2026/10/25/when-the-peso-buys-less",
-    "published": "Sun, 25 Oct 2026 14:42:18 GMT",
-    "source": "Daily Tribune",
-    "domain": "tribune.net.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "PESO ENDS AT \u20b164.025 AGAINST US DOLLAR The Philippine peso stood at \u20b164.025 against the US dollar on Wednesday, October 28, 2026, based on data from the Bankers Association of the Philippines. The rate means one US dollar is equivalent to \u20b164. - Facebook",
-    "url": "https://www.facebook.com/sunstardavaonews/posts/peso-ends-at-64025-against-us-dollarthe-philippine-peso-stood-at-64025-against-t/1608210081347201/",
-    "published": "Wed, 28 Oct 2026 08:19:26 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso continues record slide, hits 63.8:$1 - Inquirer.net",
-    "url": "https://business.inquirer.net/617989/peso-continues-record-slide-hits-63-81",
-    "published": "Mon, 26 Oct 2026 02:20:00 GMT",
-    "source": "Inquirer.net",
-    "domain": "business.inquirer.net",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso sinks past 64-level vs dollar, hits fresh low - Philstar.com",
-    "url": "https://www.philstar.com/business/2026/10/27/2566081/peso-sinks-past-64-level-vs-dollar-hits-fresh-low",
-    "published": "Tue, 27 Oct 2026 04:47:00 GMT",
-    "source": "Philstar.com",
-    "domain": "philstar.com",
-    "needsResolve": false
-   },
-   {
-    "title": "The Philippine peso closed at P64.025 against the US dollar on Wednesday, October 28, 2026. - Facebook",
-    "url": "https://www.facebook.com/PhilippineSTAR/posts/the-philippine-peso-closed-at-p64025-against-the-us-dollar-on-wednesday-october-/1674118808085325/",
-    "published": "Wed, 28 Oct 2026 08:29:29 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Battered peso sinks to new low, nears 64:$1 - Inquirer.net",
-    "url": "https://business.inquirer.net/618092/battered-peso-sinks-to-new-low-nears-641",
-    "published": "Mon, 26 Oct 2026 18:10:00 GMT",
-    "source": "Inquirer.net",
-    "domain": "business.inquirer.net",
-    "needsResolve": false
-   },
-   {
-    "title": "Marcos: Don't panic over peso fall to P64 per dollar - Philstar.com",
-    "url": "https://www.philstar.com/business/2026/10/28/2566337/marcos-dont-panic-over-peso-fall-p64-dollar",
-    "published": "Wed, 28 Oct 2026 07:32:00 GMT",
-    "source": "Philstar.com",
-    "domain": "philstar.com",
-    "needsResolve": false
-   },
-   {
-    "title": "The peso hit a record low of P64 against the dollar during intraday trading on Tuesday, October 27. The local currency opened at 63.95 versus the US dollar and hit 64 as of 11:05 a.m., according to the website of the Bankers Association of the Philippines. \u2014 R - Facebook",
-    "url": "https://www.facebook.com/abscbnNEWS/posts/the-peso-hit-a-record-low-of-p64-against-the-dollar-during-intraday-trading-on-t/1737841511724431/",
-    "published": "Tue, 27 Oct 2026 09:57:48 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Customers of the Manila Electric Company (Meralco) should expect electricity prices to go up as the continuing depreciation of the Philippine peso is seen to affect the power generation costs. Read more: https://www.gmanetwork.com/news/money/economy/10 - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/customers-of-the-manila-electric-company-meralco-should-expect-electricity-price/1759464392891877/",
-    "published": "Wed, 28 Oct 2026 19:30:28 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "The peso reached a low of P63.99 against the dollar intraday, its lowest in history. | via ANC 24/7 Link to full story in the comments section. - Facebook",
-    "url": "https://www.facebook.com/abscbnNEWS/posts/the-peso-reached-a-low-of-p6399-against-the-dollar-intraday-its-lowest-in-histor/1737500671758515/",
-    "published": "Tue, 27 Oct 2026 02:34:34 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Philippine peso sinks to record low P64.17 vs $1 | The wRap Here are today's headlines \u2013 the latest news in the Philippines and around the world: - Philippine peso's historic slide continues, hitting record low P64.17 per dollar - BARMM\u2019s Teduray, Lambangia - Facebook",
-    "url": "https://www.facebook.com/rapplerdotcom/posts/philippine-peso-sinks-to-record-low-p6417-vs-1-the-wraphere-are-todays-headlines/1674102921418436/",
-    "published": "Tue, 27 Oct 2026 13:55:34 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "The Philippine peso dived to a new record low, breaching the P64:$ level during the intraday trading on Tuesday. READ: https://www.gmanetwork.com/news/money/economy/1007290/peso-breaches-p64-level-new-record-low/story/ - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/the-philippine-peso-dived-to-a-new-record-low-breaching-the-p64-level-during-the/1756891899815793/",
-    "published": "Tue, 27 Oct 2026 05:20:24 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Here are the biggest headlines of October 27, 2026, as of 11 PM. Peso dives to 33rd record low of P64.17:$1 https://www.gmanetwork.com/news/money/economy/1007351/peso-dives-to-33rd-record-low-of-p64-17-1/story/ PAGASA declares onset of Amihan ht - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/here-are-the-biggest-headlines-of-october-27-2026-as-of-11-pmpeso-dives-to-33rd-/1757656813072635/",
-    "published": "Tue, 27 Oct 2026 15:02:42 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "NEWS UPDATE: The Bangko Sentral ng Pilipinas (BSP) said it continues to monitor the foreign exchange market and intervenes as needed to curb excessive volatility, mitigate inflation risks, and address disorderly market conditions, amid the peso\u2019s continue - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/news-update-the-bangko-sentral-ng-pilipinas-bsp-said-it-continues-to-monitor-the/1757216633116653/",
-    "published": "Tue, 27 Oct 2026 09:31:33 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso dives to 33rd record low of P64.17:$1 - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/peso-dives-to-33rd-record-low-of-p64171/1757289156442734/",
-    "published": "Tue, 27 Oct 2026 10:30:03 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "ALL-TIME LOW AGAIN BREAKING: The Philippine peso closed on Monday, Oct. 26, at a new all-time low of P63.95:$1. Visit gmanetwork.com/news for more updates. - Facebook",
-    "url": "https://www.facebook.com/gmanews/posts/all-time-low-again-breaking-the-philippine-peso-closed-on-monday-oct-26-at-a-new/1755648766606773/",
-    "published": "Mon, 26 Oct 2026 08:13:05 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "LOOK: Foreign Exchange Rate as of October 26, 2026 Source: BSP via https://www.bsp.gov.ph/sitepages/statistics/exchangerate.aspx - Facebook",
-    "url": "https://www.facebook.com/PTVph/posts/look-foreign-exchange-rate-as-of-october-26-2026source-bsp-via/1577548777825719/",
-    "published": "Mon, 26 Oct 2026 01:43:24 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso breaches P64-$1 - Daily Tribune",
-    "url": "https://tribune.net.ph/2026/10/27/peso-breaches-p64-1",
-    "published": "Tue, 27 Oct 2026 18:10:53 GMT",
-    "source": "Daily Tribune",
-    "domain": "tribune.net.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "Almost P64: Peso sinks to record P63.95 to a dollar - Philstar.com",
-    "url": "https://www.philstar.com/business/2026/10/26/2565848/almost-p64-peso-sinks-record-p6395-dollar",
-    "published": "Mon, 26 Oct 2026 09:26:00 GMT",
-    "source": "Philstar.com",
-    "domain": "philstar.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso dives to 33rd record low of P64.17:$1 - GMA Network",
-    "url": "https://www.gmanetwork.com/news/money/economy/1007351/peso-dives-to-33rd-record-low-of-p64-17-1/story/",
-    "published": "Tue, 27 Oct 2026 08:48:45 GMT",
-    "source": "GMA Network",
-    "domain": "gmanetwork.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso breaches P64 as record-low streak extends - Daily Tribune",
-    "url": "https://tribune.net.ph/2026/10/27/peso-breaches-p64-as-record-low-streak-extends",
-    "published": "Tue, 27 Oct 2026 12:38:10 GMT",
-    "source": "Daily Tribune",
-    "domain": "tribune.net.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "Why has the Philippine peso plunged to a record low? - Al Jazeera",
-    "url": "https://www.aljazeera.com/economy/2026/9/4/why-has-the-philippines-peso-plunged-to-a-record-low",
-    "published": "Fri, 04 Sep 2026 07:00:00 GMT",
-    "source": "Al Jazeera",
-    "domain": "aljazeera.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Iran releases currency exchange rates for October 28 - Trend News Agency",
-    "url": "https://www.trend.az/iran/4239988.html",
-    "published": "Wed, 28 Oct 2026 05:41:51 GMT",
-    "source": "Trend News Agency",
-    "domain": "trend.az",
-    "needsResolve": false
-   },
-   {
-    "title": "P64 per dollar! Peso hits rock bottom again - Bilyonaryo Business",
-    "url": "https://bilyonaryo.com/p64-per-dollar-peso-hits-rock-bottom-again/",
-    "published": "Tue, 27 Oct 2026 06:01:40 GMT",
-    "source": "Bilyonaryo Business",
-    "domain": "bilyonaryo.com",
-    "needsResolve": false
-   },
-   {
-    "title": "\u2018Don\u2019t panic\u2019: Marcos tells public as peso hits new record low - DZRH",
-    "url": "https://www.dzrh.com.ph/post/dont-panic-marcos-tells-public-as-peso-hits-new-record-low",
-    "published": "Wed, 28 Oct 2026 06:48:46 GMT",
-    "source": "DZRH",
-    "domain": "dzrh.com.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso sinks to new low, nears 64 per USD - Metrobank Wealth Insights",
-    "url": "https://wealthinsights.metrobank.com.ph/news/peso-sinks-to-new-low-nears-641",
-    "published": "Tue, 27 Oct 2026 02:36:57 GMT",
-    "source": "Metrobank Wealth Insights",
-    "domain": "wealthinsights.metrobank.com.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "Peso rebounds, but stays above P64; PSEi slumps - Daily Tribune",
-    "url": "https://tribune.net.ph/2026/10/28/peso-rebounds-but-stays-above-p64-psei-slumps",
-    "published": "Wed, 28 Oct 2026 08:40:49 GMT",
-    "source": "Daily Tribune",
-    "domain": "tribune.net.ph",
-    "needsResolve": false
-   },
-   {
-    "title": "PESO-DOLLAR RATE AT \u20b162.77 The Philippine peso is trading at \u20b162.77 to US$1 as of September 7, 2026, according to the Bankers Association of the Philippines (BAP). The latest exchange rate remains closely watched as movements in the peso-dollar rat - Facebook",
-    "url": "https://www.facebook.com/sunstardavaonews/posts/peso-dollar-rate-at-6277the-philippine-peso-is-trading-at-6277-to-us1-as-of-sept/1556624249839118/",
-    "published": "Sun, 06 Sep 2026 07:00:00 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
-    "needsResolve": false
-   },
-   {
-    "title": "Iran releases currency exchange rates for October 27 - Trend News Agency",
-    "url": "https://www.trend.az/iran/4239446.html",
-    "published": "Tue, 27 Oct 2026 05:33:57 GMT",
-    "source": "Trend News Agency",
-    "domain": "trend.az",
-    "needsResolve": false
-   },
-   {
-    "title": "Iran releases currency exchange rates for October 26 - Trend News Agency",
-    "url": "https://www.trend.az/iran/4238986.html",
-    "published": "Mon, 26 Oct 2026 05:19:53 GMT",
-    "source": "Trend News Agency",
-    "domain": "trend.az",
-    "needsResolve": false
-   },
-   {
-    "title": "Iran releases currency exchange rates for October 25 - Trend News Agency",
-    "url": "https://www.trend.az/iran/4238867.html",
-    "published": "Sun, 25 Oct 2026 05:56:56 GMT",
-    "source": "Trend News Agency",
-    "domain": "trend.az",
-    "needsResolve": false
-   },
-   {
-    "title": "Rupee, peso weakness stretches UAE expat remittances - Gulf News",
-    "url": "https://gulfnews.com/your-money/saving-investment/rupee-peso-weakness-stretches-uae-expat-remittances-1.500301712",
-    "published": "Wed, 28 Oct 2026 04:37:28 GMT",
-    "source": "Gulf News",
-    "domain": "gulfnews.com",
-    "needsResolve": false
-   },
-   {
-    "title": "LOOK: Foreign Exchange Rate as of May 25, 2026. Source: BSP via https://www.bsp.gov.ph/sitepages/statistics/exchangerate.aspx - Facebook",
-    "url": "https://www.facebook.com/PTVph/posts/look-foreign-exchange-rate-as-of-may-25-2026source-bsp-via/1433312405582691/",
-    "published": "Sun, 24 May 2026 07:00:00 GMT",
-    "source": "Facebook",
-    "domain": "facebook.com",
+    "title": "Dallas Cowboys Cheerleaders Take Legal Action Against Emo Band - The Daily Beast",
+    "url": "https://www.thedailybeast.com/dallas-cowboys-cheerleaders-take-legal-action-against-my-chemical-romance",
+    "published": "Tue, 27 Oct 2026 17:34:34 GMT",
+    "source": "The Daily Beast",
+    "domain": "thedailybeast.com",
     "needsResolve": false
    }
   ]

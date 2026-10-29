@@ -2,6 +2,11 @@
  *
  * The home screen is the watchlist, not a search box. The search bar is how
  * you add a question to the list; the list is what you come back to.
+ *
+ * Three states must never be confused with each other:
+ *   not run yet  ·  the feed came back empty  ·  the feed could not be reached
+ * An earlier version showed "no results, press refresh" for all three, which
+ * is how a dead network looks like a working product.
  */
 (function () {
   'use strict';
@@ -10,14 +15,21 @@
   var S = window.Store;
   var Api = window.Api;
 
+  var SAMPLES = [
+    'BTC halving',
+    'peso price today',
+    'is there an ongoing war right now',
+    'when is the new pokemon game gonna get released',
+    'my chemical romance band concert'
+  ];
+
   var results = loadResults();
-  var expanded = {};      // queryId -> true
-  var showAll = {};       // queryId -> true
+  var expanded = {};
+  var showAll = {};
   var view = 'watchlist';
   var busy = false;
   var queued = false;
   var queuedIds = [];
-  var lastError = null;
 
   function loadResults() {
     try {
@@ -38,7 +50,6 @@
     if (text != null) n.textContent = text;
     return n;
   }
-  function $(sel) { return document.querySelector(sel); }
   function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
 
   function timeAgo(iso) {
@@ -59,9 +70,14 @@
     return n + ' ' + (pluralWord || word + 's');
   }
 
+  function normTitle(t) {
+    return String(t || '').toLowerCase()
+      .replace(/\s+[-–—]\s+[^-–—]+$/, '')
+      .replace(/[^a-z0-9]+/g, '').slice(0, 70);
+  }
+
   /* ---------------- grouping ---------------- */
-  // Priority cascade, exactly as specified:
-  //   Read  >  Published Today  >  Unread
+  // Priority cascade: Read > Published Today > Unread.
   function groupItems(items) {
     var period = S.state().settings.period;
     var ignored = S.ignoredUrls();
@@ -75,20 +91,14 @@
       if (ignored[u]) return;
       if (!S.inPeriod(it.published, period)) return;
       kept++;
-      var isRead = !!S.state().read[u];
-      var isToday = S.isPublishedToday(it.published);
-      if (isRead) read.push(it);
-      else if (isToday) today.push(it);
+      if (S.state().read[u]) read.push(it);
+      else if (S.isPublishedToday(it.published)) today.push(it);
       else unread.push(it);
     });
 
-    function isPref(it) {
-      return Api.domainMatches(it.domain || '', preferredDomains);
-    }
-
     function byPrefThenDate(a, b) {
-      var ap = isPref(a) ? 0 : 1;
-      var bp = isPref(b) ? 0 : 1;
+      var ap = Api.domainMatches(a.domain || '', preferredDomains) ? 0 : 1;
+      var bp = Api.domainMatches(b.domain || '', preferredDomains) ? 0 : 1;
       if (ap !== bp) return ap - bp;
       var at = a.published ? new Date(a.published).getTime() : 0;
       var bt = b.published ? new Date(b.published).getTime() : 0;
@@ -107,7 +117,7 @@
   function render() {
     S.purgeExpiredIgnored();
     renderNav();
-    var main = $('#main');
+    var main = document.getElementById('main');
     clear(main);
     if (view === 'watchlist') renderWatchlist(main);
     else if (view === 'sources') renderSources(main);
@@ -116,23 +126,38 @@
   }
 
   function renderStatus() {
-    var st = $('#status');
+    var st = document.getElementById('status');
     clear(st);
-    if (lastError) {
-      var e = el('span', 'status__err', lastError);
-      st.appendChild(e);
-      return;
+    var failed = S.state().queries.filter(function (q) {
+      return results[q.id] && results[q.id].error;
+    }).length;
+
+    if (failed) {
+      st.appendChild(el('span', 'status__err',
+        plural(failed, 'watch') + ' could not be refreshed'));
+      st.appendChild(el('span', 'status__sep', '·'));
     }
+
     var b = Api.backend();
     var label = b === 'worker' ? 'live · your Worker, publisher links'
       : b === 'relay' ? 'live · public relay'
-        : b === 'snapshot' ? 'bundled snapshot · live feeds unreachable'
+        : b === 'snapshot' ? 'bundled snapshot · live feed unreachable'
           : 'checking…';
     st.appendChild(el('span', 'status__backend', label));
-    var n = S.state().queries.length;
-    st.appendChild(el('span', 'status__sep', '·'));
-    st.appendChild(el('span', '', plural(n, 'watch', 'watches') + ' · ' + plural(S.state().sources.length, 'source')));
 
+    var note = document.getElementById('link-note');
+    if (note) {
+      note.textContent = b === 'worker'
+        ? 'Links resolve to the publisher\'s own address, not to a search page.'
+        : b === 'relay'
+          ? 'This host reaches Google News through a public relay, so links may open via Google before the article.'
+          : b === 'snapshot'
+            ? 'Showing a bundled copy of these results. Deploy the Worker for live, directly-resolved links.'
+            : '';
+    }
+    st.appendChild(el('span', 'status__sep', '·'));
+    st.appendChild(el('span', '', plural(S.state().queries.length, 'watch', 'watches') +
+      ' · ' + plural(S.state().sources.length, 'source')));
   }
 
   function renderNav() {
@@ -152,9 +177,7 @@
     head.appendChild(el('span', 'list__hint', 'ordered by what is new, your sources first'));
     main.appendChild(head);
 
-    qs.forEach(function (q) {
-      main.appendChild(renderEntry(q));
-    });
+    qs.forEach(function (q) { main.appendChild(renderEntry(q)); });
   }
 
   function renderEmptyState() {
@@ -184,14 +207,7 @@
 
     var ex = el('div', 'empty__examples');
     ex.appendChild(el('span', 'empty__examplesLabel', 'Or start with:'));
-    var samples = [
-      'btc halving',
-      'peso price today',
-      'new pokemon game release date',
-      'my chemical romance concert dates',
-      'philippine peso exchange rate'
-    ];
-    samples.forEach(function (s) {
+    SAMPLES.forEach(function (s) {
       var b = el('button', 'chip', s);
       b.type = 'button';
       b.addEventListener('click', function () {
@@ -211,6 +227,9 @@
     var isOpen = !!expanded[q.id];
     wrap.classList.toggle('is-open', isOpen);
 
+    var res = results[q.id];
+    var g = groupItems(res ? res.items : []);
+
     var head = el('div', 'entry__head');
 
     var titleBtn = el('button', 'entry__toggle');
@@ -218,15 +237,14 @@
     titleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     titleBtn.appendChild(el('span', 'entry__caret', isOpen ? '▾' : '▸'));
     titleBtn.appendChild(el('span', 'entry__text', q.text));
-    var g = groupItems(results[q.id] ? results[q.id].items : []);
-    var badge = el('span', 'entry__counts');
-    if (results[q.id]) {
+    if (res) {
+      var badge = el('span', 'entry__counts');
       badge.appendChild(el('span', 'count count--new', String(g.today.length)));
       badge.appendChild(el('span', 'count count--unread', String(g.unread.length)));
       if (g.read.length) badge.appendChild(el('span', 'count count--read', String(g.read.length)));
       badge.title = g.today.length + ' published today · ' + g.unread.length + ' unread · ' + g.read.length + ' read';
+      titleBtn.appendChild(badge);
     }
-    titleBtn.appendChild(badge);
     titleBtn.addEventListener('click', function () {
       expanded[q.id] = !expanded[q.id];
       render();
@@ -271,14 +289,45 @@
     if (!isOpen) return wrap;
 
     var body = el('div', 'entry__body');
-    var items = results[q.id] ? results[q.id].items : [];
 
-    if (!items.length) {
-      body.appendChild(el('p', 'entry__empty', 'No results yet — press ⟳ to run this watch.'));
+    // State 1 — the feed could not be reached. Say so, and keep what we had.
+    if (res && res.error) {
+      var err = el('div', 'notice notice--error');
+      err.appendChild(el('span', 'notice__title', 'Could not reach the feed'));
+      err.appendChild(el('span', 'notice__body', res.error));
+      if (res.fetchedAt) {
+        err.appendChild(el('span', 'notice__body',
+          'Showing the last results from ' + timeAgo(res.fetchedAt) + '.'));
+      }
+      var retry = el('button', 'btn btn--ghost notice__btn', 'Try again');
+      retry.type = 'button';
+      retry.addEventListener('click', function () { runQueries([q.id]); });
+      err.appendChild(retry);
+      body.appendChild(err);
+      // A failed fetch is not an empty result — never say the feed answered.
+      if (!res.items.length) {
+        body.appendChild(el('p', 'entry__empty', 'Nothing to show yet.'));
+        wrap.appendChild(body);
+        return wrap;
+      }
+    }
+
+    // State 2 — never run.
+    if (!res) {
+      body.appendChild(el('p', 'entry__empty', 'Not run yet — press ⟳ to fetch this watch.'));
       wrap.appendChild(body);
       return wrap;
     }
 
+    // State 3 — ran fine, nothing matched.
+    if (!res.items.length) {
+      body.appendChild(el('p', 'entry__empty',
+        'The feed answered, but nothing matched this query.'));
+      wrap.appendChild(body);
+      return wrap;
+    }
+
+    // State 4 — ran fine, nothing in the chosen period.
     if (!g.today.length && !g.unread.length && !g.read.length) {
       body.appendChild(el('p', 'entry__empty',
         'Nothing in this period. Try a wider period in the filter above.'));
@@ -289,6 +338,10 @@
     if (g.today.length) body.appendChild(renderGroup('Published Today', g.today, q, false));
     if (g.unread.length) body.appendChild(renderGroup('Unread', g.unread, q, false, 20));
     if (g.read.length) body.appendChild(renderGroup('Read', g.read, q, true));
+
+    if (res.fetchedAt) {
+      body.appendChild(el('p', 'entry__stamp', 'updated ' + timeAgo(res.fetchedAt)));
+    }
 
     wrap.appendChild(body);
     return wrap;
@@ -301,7 +354,6 @@
     h.appendChild(el('span', 'group__title', title));
     h.appendChild(el('span', 'group__n', String(items.length)));
     if (collapsed) h.appendChild(el('span', 'group__caret', '▸'));
-    var open = collapsed ? false : true;
     sec.classList.toggle('is-collapsed', collapsed);
     h.addEventListener('click', function () {
       if (!collapsed) return;
@@ -378,8 +430,10 @@
     var add = el('button', 'link__act', '+ source');
     add.type = 'button';
     add.title = it.domain ? 'Add ' + it.domain + ' to My Sources' : 'Add this source';
-    add.disabled = !it.domain || S.hasSource(it.domain);
-    if (add.disabled) { add.textContent = '✓ source'; }
+    if (!it.domain || S.hasSource(it.domain)) {
+      add.disabled = true;
+      add.textContent = '✓ source';
+    }
     add.addEventListener('click', function () {
       if (!it.domain) return;
       S.addSource(it.source || it.domain, it.domain);
@@ -391,8 +445,7 @@
     ig.type = 'button';
     ig.title = 'Ignore this link for ' + (S.state().settings.ignoreDays || 0) + ' days';
     ig.addEventListener('click', function () {
-      var it2 = { url: it.url, title: it.title, source: it.source, domain: it.domain, query: q ? q.text : '' };
-      S.ignore(it2);
+      S.ignore({ url: it.url, title: it.title, source: it.source, domain: it.domain, query: q ? q.text : '' });
       render();
     });
     acts.appendChild(ig);
@@ -464,12 +517,12 @@
       var ul = el('ul', 'ignorelist');
       ig.forEach(function (x) {
         var li = el('li', 'ignorelist__item');
-        var t = el('span', 'ignorelist__title', x.title || x.url);
-        li.appendChild(t);
+        li.appendChild(el('span', 'ignorelist__title', x.title || x.url));
         var meta = el('span', 'ignorelist__meta');
         meta.appendChild(el('span', null, x.source || x.domain || ''));
         if (x.expiresAt) {
-          meta.appendChild(el('span', null, ' · back in ' + Math.max(0, Math.ceil((x.expiresAt - Date.now()) / 86400000)) + 'd'));
+          meta.appendChild(el('span', null, ' · back in ' +
+            Math.max(0, Math.ceil((x.expiresAt - Date.now()) / 86400000)) + 'd'));
         } else {
           meta.appendChild(el('span', null, ' · kept indefinitely'));
         }
@@ -499,23 +552,29 @@
       return Promise.resolve();
     }
     busy = true;
-    lastError = null;
-    renderStatus();
 
     var targets = ids ? ids.map(function (i) { return S.findQuery(i); }).filter(Boolean)
       : S.state().queries.slice();
-    if (!targets.length) { busy = false; renderStatus(); return Promise.resolve(); }
+    if (!targets.length) { busy = false; render(); return Promise.resolve(); }
 
     var sources = S.sourceDomains();
     var chain = Promise.resolve();
     targets.forEach(function (q) {
       chain = chain.then(function () {
         return Api.search(q.text, q.mode, sources).then(function (items) {
-          results[q.id] = { fetchedAt: new Date().toISOString(), items: items };
+          results[q.id] = { fetchedAt: new Date().toISOString(), items: items || [], error: null };
           S.setQueryRan(q.id);
           saveResults();
         }).catch(function (e) {
-          lastError = 'Could not reach the feed: ' + (e && e.message ? e.message : e);
+          // Keep the last good results. A failed refresh must not wipe the list,
+          // and it must not look like "this query has no results".
+          var prev = results[q.id] || {};
+          results[q.id] = {
+            fetchedAt: prev.fetchedAt || null,
+            items: prev.items || [],
+            error: (e && e.message) ? e.message : String(e)
+          };
+          saveResults();
         });
       });
     });
@@ -535,14 +594,13 @@
   /* ---------------- top bar ---------------- */
 
   function wireTopbar() {
-    var form = $('#search-form');
-    var input = $('#search-input');
+    var form = document.getElementById('search-form');
+    var input = document.getElementById('search-input');
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = input.value.trim();
       if (!v) return;
-      // A second bar submits as a one-off search that also becomes a watch.
       var q = S.addQuery(v, 'all');
       expanded[q.id] = true;
       input.value = '';
@@ -551,14 +609,14 @@
       runQueries([q.id]);
     });
 
-    $('#refresh-all').addEventListener('click', function () {
+    document.getElementById('refresh-all').addEventListener('click', function () {
       expanded = {};
       S.state().queries.forEach(function (q) { expanded[q.id] = true; });
       render();
       runQueries(null);
     });
 
-    var period = $('#period');
+    var period = document.getElementById('period');
     var options = [
       ['latest', 'Latest'], ['week', 'This Week'], ['month', 'This Month'],
       ['year', 'This Year'], ['2025', '2025'], ['2024', '2024'], ['2023', '2023'],
@@ -583,7 +641,7 @@
       });
     });
 
-    $('#export-btn').addEventListener('click', function () {
+    document.getElementById('export-btn').addEventListener('click', function () {
       var blob = new Blob([S.exportState()], { type: 'application/json' });
       var a = el('a');
       a.href = URL.createObjectURL(blob);
@@ -592,8 +650,10 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     });
 
-    $('#import-btn').addEventListener('click', function () { $('#import-file').click(); });
-    $('#import-file').addEventListener('change', function (e) {
+    document.getElementById('import-btn').addEventListener('click', function () {
+      document.getElementById('import-file').click();
+    });
+    document.getElementById('import-file').addEventListener('change', function (e) {
       var f = e.target.files && e.target.files[0];
       if (!f) return;
       var fr = new FileReader();
@@ -615,18 +675,29 @@
 
   function boot() {
     wireTopbar();
+
     // When the live feed finally answers, swap it in over the bundled snapshot.
+    // Keep any publisher URL we already resolved — the live path can only
+    // produce Google redirect links, which are worse to click.
     Api.onLive(function (payload) {
       var q = S.state().queries.filter(function (x) { return x.text === payload.query; })[0];
       if (!q) return;
-      results[q.id] = { fetchedAt: new Date().toISOString(), items: payload.items };
+      var prev = results[q.id] ? results[q.id].items : [];
+      var resolved = {};
+      prev.forEach(function (it) {
+        if (it.url && it.url.indexOf('news.google.com') !== 0) resolved[normTitle(it.title)] = it.url;
+      });
+      var merged = payload.items.map(function (it) {
+        var r = resolved[normTitle(it.title)];
+        return r ? Object.assign({}, it, { url: r, needsResolve: false }) : it;
+      });
+      results[q.id] = { fetchedAt: new Date().toISOString(), items: merged, error: null };
       saveResults();
       render();
     });
+
     render();
-    // Show whatever we last fetched, then refresh in the background.
-    var any = S.state().queries.length;
-    if (any) {
+    if (S.state().queries.length) {
       S.state().queries.forEach(function (q) { expanded[q.id] = true; });
       render();
       runQueries(null);

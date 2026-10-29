@@ -15,6 +15,7 @@ the product.
 | | |
 |---|---|
 | **Watchlist home** | Every watch shows counts: published today, unread, read. Expand for the list. |
+| **Honest states** | *Not run yet*, *the feed answered but nothing matched* and *could not reach the feed* are three different messages. A failed refresh keeps the last good results and shows when they were fetched. |
 | **Three source modes** | *All Sources* · *My Sources First* · *My Sources Only*, per watch. |
 | **My Sources** | Publishers you trust. Captured from results with **+ source** — no URLs to type. |
 | **Grouping** | `Read` → `Published Today` → `Unread`. Read is collapsed, Unread caps at 20 with "Show more". |
@@ -93,6 +94,23 @@ assets binding shown in `worker/wrangler.toml` and serve both from one Worker.
 ---
 
 ## Design notes worth keeping
+
+- **A failed fetch must never look like an empty result.** This is the single
+  most important rule in the interface. An earlier version printed "no results,
+  press refresh" for both, which is exactly how a dead network disguises itself
+  as a working product.
+- **The Google News query language punishes `+OR+`.** In `+term` means *must
+  contain this term*, so `+OR+` between phrases demands the literal word "or" in
+  every result and matches nothing. ` OR ` is correct. Verified: the same eight
+  phrases return 0 items with `+OR+` and 41–100 with ` OR `.
+- **Regional editions work** — `hl=en-PH&gl=PH&ceid=PH:en` returns a full feed.
+  A mismatched pair such as `hl=en-US&gl=PH` returns zero and looks like a dead
+  region when it is not.
+- **Keep the publisher URL when the live feed arrives.** The relay path can only
+  produce Google redirect links, so live results keep any publisher URL that was
+  already resolved.
+- **Never hammer a free relay.** A 90-second refresh loop from one IP is how a
+  working page quietly dies.
 
 - **"Published Today" uses the reader's local day, not UTC.** `pubDate` from Google is
   GMT. A reader in UTC+8 opening at 8am local would otherwise see yesterday's articles
