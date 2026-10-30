@@ -9,58 +9,77 @@
  *     on the publisher's own site in under two seconds).
  *
  *   Bing News RSS — thin, and sometimes very thin: one item for some queries,
- *     fourteen for others. It earns its place for two reasons. Its links are
- *     the publisher's own URL, so a headline it also carries opens directly
- *     instead of bouncing. And it is a second opinion, so one feed answering
- *     is enough to show something rather than nothing.
+ *     fourteen for others. Its links are the publisher's own URL, so a
+ *     headline it also carries opens directly instead of bouncing. It is the
+ *     second opinion, not the backbone.
  *
  * Neither feed sends CORS headers, so a browser cannot read either one
- * directly. Everything goes through a public relay. allorigins needs up to
- * about twenty seconds on a cold cache, which is why the timeout below sits
- * well above that — an earlier version used nine seconds, aborted before the
- * relay could answer, and every typed search failed.
+ * directly. Everything goes through a public relay, and the relays are
+ * awkward in different ways:
+ *
+ *   allorigins — serves a query it has already cached, instantly. A cold
+ *     query takes it 24 seconds and then fails (408/500/522), because
+ *     fetching a cold Google News RSS is slower than its own upstream
+ *     budget allows. Its ERROR responses carry no CORS header at all, so the
+ *     browser reports them as a CORS failure rather than an HTTP error.
+ *
+ *   cors.lol — the only relay measured that can fetch a COLD query (1.2 s,
+ *     100 items). But it allows roughly one request every few minutes, and
+ *     it answers HTTP 429 for the rest.
+ *
+ * So the two are used differently. allorigins handles both feeds, because it
+ * has no practical limit and repeat queries are cached there. cors.lol is
+ * spent only on the Google feed — ONE request per search, because asking it
+ * twice in the same search is what used to burn its window.
+ *
+ * If a Cloudflare Worker is deployed on the same origin, it is used instead
+ * and none of this applies. The worker fetches from Cloudflare's edge, where
+ * Google answers in 0.39 s, caches the result, and there is no third-party
+ * rate limit to trip over.
  *
  * Nothing here runs on page load. A fetch only happens when the user sifts.
  */
 (function (global) {
   'use strict';
 
-  /* Relays, raced rather than tried in sequence.
-   *
-   * All of these are flaky free services, and they fail differently:
-   *
-   *   allorigins /get  — the workhorse. Answers with ACAO even when it is
-   *     failing, which matters: its plain error pages carry NO
-   *     Access-Control-Allow-Origin header at all, so the browser reports
-   *     them as a CORS failure rather than an HTTP error.
-   *   allorigins /raw  — the same service, a different path, and therefore a
-   *     DIFFERENT CACHE KEY. When /raw is cold and 522s, /get is often warm
-   *     and answering. Racing both is cheaper than it sounds: only one of
-   *     them can win, and the loser costs nothing but a request.
-   *   cors.lol         — answers in about a second when it works, and
-   *     rate-limits the rest of the time (HTTP 429).
-   *
-   * Racing them means a dead relay costs nothing while a working one answers.
-   */
-  var RELAYS = [
-    { name: 'allorigins.get',
+  var RELAYS = {
+    'allorigins.get': {
+      name: 'allorigins.get',
       url: function (u) { return 'https://api.allorigins.win/get?url=' + enc(u); },
       extract: jsonContents,
-      timeout: 15000 },
-    { name: 'allorigins.raw',
+      timeout: 26000,
+      retries: 3,
+      retryWait: 5000,
+      retryWaits: [5000, 12000, 22000]
+    },
+    'allorigins.raw': {
+      name: 'allorigins.raw',
       url: function (u) { return 'https://api.allorigins.win/raw?url=' + enc(u); },
       extract: identity,
-      timeout: 15000 },
-    { name: 'cors.lol',
+      timeout: 26000,
+      retries: 3,
+      retryWait: 5000,
+      retryWaits: [5000, 12000, 22000]
+    },
+    'cors.lol': {
+      name: 'cors.lol',
       url: function (u) { return 'https://api.cors.lol/?url=' + enc(u); },
       extract: identity,
-      timeout: 12000 }
-  ];
+      timeout: 12000,
+      retries: 1,
+      retryWait: 20000
+    }
+  };
 
-  var RELAY_RETRY_DELAY = 2500;
-  var RATE_LIMIT_WAIT = 7000;
+  // Which relays each feed may spend. cors.lol goes to the backbone only:
+  // it is the one request it gets per search.
+  var FEED_RELAYS = {
+    google: ['allorigins.get', 'allorigins.raw', 'cors.lol'],
+    bing: ['allorigins.get', 'allorigins.raw']
+  };
 
   var DEFAULT_REGION = 'PH:en';
+  var WORKER_PATH = '/api/search';
 
   function enc(u) { return encodeURIComponent(u); }
 
@@ -103,7 +122,7 @@
   function identity(txt) { return txt; }
 
   // allorigins /get wraps the upstream body as {"contents": "<body>", ...}.
-  // The plain error pages are not JSON at all — those are passed through and
+  // Its plain error pages are not JSON at all — those are passed through and
   // caught by the feed check below.
   function jsonContents(txt) {
     if (txt.charAt(0) !== '{') return txt;
@@ -115,14 +134,21 @@
   }
 
   /* Race a set of relays at once. The first body that looks like a feed wins.
-   * A relay that is down, rate-limited, or was handed a web page instead of a
-   * feed simply loses the race — none of them holds up the others.
+   * A relay that is down, or was handed a web page instead of a feed, simply
+   * loses the race — none of them holds up the others.
    *
-   * One case is treated differently: HTTP 429 means "you are asking too
-   * often, come back shortly", not "this service is broken". Those get one
-   * retry after a pause instead of being dropped, because a rate limit is
-   * the most likely thing to clear on its own. */
-  function raceRelays(url, relays) {
+   * Transient failures are treated differently. HTTP 429 means "you are asking
+   * too often, come back shortly". HTTP 5xx from allorigins (500, 520, 522)
+   * means the relay's own upstream stumbled — it was seen serving 520 for a
+   * plain example.com while working fine a moment later. Neither is a reason
+   * to give up, so both are retried with a pause. A cold Google News fetch
+   * through allorigins legitimately takes up to about 25 seconds, which is
+   * why its timeout is 26 and not 15.
+   *
+   * Every failure is recorded with its reason, so a failed search can say
+   * what actually went wrong instead of "no relay answered". */
+  function raceRelays(url, relayNames, reasons, notes) {
+    var relays = relayNames.map(function (n) { return RELAYS[n]; });
     return new Promise(function (resolve) {
       var pending = relays.length;
       var settled = false;
@@ -139,33 +165,35 @@
       function attempt(r, retriesLeft) {
         fetchText(r.url(url), r.timeout).then(function (txt) {
           var body = r.extract(txt);
-          if (!/<rss|<feed/i.test(body)) throw new Error(r.name + ' did not return a feed');
+          if (!/<rss|<feed/i.test(body)) throw new Error('did not return a feed');
           win(body, r.name);
         }).catch(function (err) {
-          if (retriesLeft > 0 && /\b429\b/.test(err.message || '')) {
-            setTimeout(function () { attempt(r, retriesLeft - 1); }, RATE_LIMIT_WAIT);
+          var msg = (err && err.message) || String(err);
+          var rateLimited = /\b429\b/.test(msg);
+          var upstreamError = /\b5\d\d\b/.test(msg);
+          if (retriesLeft > 0 && (rateLimited || upstreamError)) {
+            var note = rateLimited
+              ? r.name + ' is rate-limiting us; waiting for it to answer'
+              : r.name + ' is having a moment; trying it again';
+            if (notes.indexOf(note) === -1) notes.push(note);
+            var waits = r.retryWaits || [];
+            var wait = waits.length ? waits[waits.length - 1 - retriesLeft] : (r.retryWait || 8000);
+            setTimeout(function () { attempt(r, retriesLeft - 1); }, wait);
             return;
           }
+          reasons.push(r.name + ': ' + msg);
           lose();
         });
       }
 
-      relays.forEach(function (r) { attempt(r, 1); });
+      relays.forEach(function (r) { attempt(r, r.retries || 0); });
     });
   }
 
-  function fetchViaRelay(url) {
-    return raceRelays(url, RELAYS).then(function (hit) {
+  function fetchFeed(url, relayNames, reasons, notes) {
+    return raceRelays(url, relayNames, reasons, notes).then(function (hit) {
       if (hit) return hit.text;
-      // All of them were down or rate-limited. Give them a moment and race
-      // the two allorigins paths again — measured over a morning of testing,
-      // roughly a third of searches lose the first round entirely.
-      return new Promise(function (r) { setTimeout(r, RELAY_RETRY_DELAY); })
-        .then(function () { return raceRelays(url, [RELAYS[0], RELAYS[1]]); })
-        .then(function (hit2) {
-          if (hit2) return hit2.text;
-          throw new Error('no relay answered');
-        });
+      throw new Error('no relay answered');
     });
   }
 
@@ -327,21 +355,45 @@
     return out;
   }
 
-  /* ---------------- backends ---------------- */
+  /* ---------------- the Worker, if one is deployed ---------------- */
 
-  function fetchGoogle(query, region) {
-    return fetchViaRelay(googleUrl(query, region)).then(function (xml) {
-      return parseRss(xml).map(googleItem);
+  var workerProbe = null;
+
+  function detectWorker() {
+    if (workerProbe) return workerProbe;
+    workerProbe = fetch(WORKER_PATH + '?q=__probe__&mode=all')
+      .then(function (r) { return r.ok; })
+      .catch(function () { return false; });
+    return workerProbe;
+  }
+
+  function workerItem(it) {
+    var url = it.url || it.link || '';
+    return {
+      title: it.title || '',
+      link: url,
+      published: it.published || null,
+      source: it.source || hostOf(url),
+      domain: it.domain || hostOf(url),
+      direct: !/news\.google\.com/.test(url)
+    };
+  }
+
+  function workerSearch(query, region, onUpdate) {
+    var u = WORKER_PATH + '?q=' + enc(query) + '&region=' + enc(region || DEFAULT_REGION);
+    return fetch(u).then(function (r) {
+      if (!r.ok) throw new Error('worker HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) {
+      var items = (j.items || []).map(workerItem);
+      if (onUpdate) onUpdate({ source: 'worker', items: items, pending: [], errors: [], notes: [] });
+      return { items: items, errors: [] };
     });
   }
 
-  function fetchBing(query) {
-    return fetchViaRelay(bingUrl(query)).then(function (xml) {
-      return parseRss(xml).map(bingItem);
-    });
-  }
+  /* ---------------- search ---------------- */
 
-  /* search() resolves to { items: [...], errors: [{source, message}] }.
+  /* search() resolves to { items: [...], errors: [{source, message}], notes: [...] }.
    *
    * onUpdate fires as each feed lands, with the merged list so far — so the
    * first answer can be put on screen without waiting for the second. */
@@ -349,6 +401,7 @@
     var g = { items: null, error: null };
     var b = { items: null, error: null };
     var errors = [];
+    var notes = [];
 
     function pending() {
       var p = [];
@@ -363,33 +416,69 @@
         source: source,
         items: merge(g.items, b.items),
         pending: pending(),
-        errors: errors.slice()
+        errors: errors.slice(),
+        notes: notes.slice()
       });
     }
 
-    var pg = fetchGoogle(query, region).then(function (items) {
-      g.items = items; report('google');
-    }, function (err) {
-      g.error = err;
-      errors.push({ source: 'google', message: err.message || String(err) });
-      report('google');
+    var gReasons = [];
+    var bReasons = [];
+
+    var pg = fetchFeed(googleUrl(query, region), FEED_RELAYS.google, gReasons, notes)
+      .then(function (xml) {
+        g.items = parseRss(xml).map(googleItem);
+        report('google');
+      }, function (err) {
+        g.error = err;
+        errors.push({ source: 'google', message: gReasons.join('; ') || (err.message || String(err)) });
+        report('google');
+      });
+
+    var pb = fetchFeed(bingUrl(query), FEED_RELAYS.bing, bReasons, notes)
+      .then(function (xml) {
+        b.items = parseRss(xml).map(bingItem);
+        report('bing');
+      }, function (err) {
+        b.error = err;
+        errors.push({ source: 'bing', message: bReasons.join('; ') || (err.message || String(err)) });
+        report('bing');
+      });
+
+    var done = Promise.all([pg, pb]).then(function () {
+      return { items: merge(g.items, b.items), errors: errors, notes: notes, timedOut: false };
     });
 
-    var pb = fetchBing(query).then(function (items) {
-      b.items = items; report('bing');
-    }, function (err) {
-      b.error = err;
-      errors.push({ source: 'bing', message: err.message || String(err) });
-      report('bing');
+    // A hard ceiling, so a bad afternoon at the relay cannot hang the page
+    // for ever. Whatever has arrived by then is what gets shown.
+    var deadline = new Promise(function (resolve) {
+      setTimeout(function () {
+        resolve({
+          items: merge(g.items, b.items),
+          errors: errors.length ? errors : [{ source: 'feed', message: 'gave up waiting after 100 seconds' }],
+          notes: notes,
+          timedOut: true
+        });
+      }, 100000);
     });
 
-    return Promise.all([pg, pb]).then(function () {
-      return { items: merge(g.items, b.items), errors: errors };
+    return Promise.race([done, deadline]);
+  }
+
+  /* The public entry point. A Worker on the same origin wins if there is one;
+   * otherwise the relays do the work. */
+  function run(query, region, onUpdate) {
+    return detectWorker().then(function (hasWorker) {
+      if (hasWorker) {
+        return workerSearch(query, region, onUpdate).catch(function (err) {
+          return { items: [], errors: [{ source: 'worker', message: err.message || String(err) }], notes: [] };
+        });
+      }
+      return search(query, region, onUpdate);
     });
   }
 
   global.Api = {
-    search: search,
+    search: run,
     merge: merge,
     googleUrl: googleUrl,
     bingUrl: bingUrl

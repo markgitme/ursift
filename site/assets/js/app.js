@@ -95,7 +95,7 @@
     var details = el('details', 'tech');
     details.appendChild(el('summary', null, 'Technical details'));
     details.appendChild(el('pre', null, errors.map(function (e) {
-      return e.source + ': ' + e.message;
+      return e.source + ':\n  ' + e.message;
     }).join('\n')));
     return details;
   }
@@ -155,13 +155,22 @@
       if (u.items && u.items.length) {
         arrived = true;
         render(u.items);
-        setStatus(u.pending.length ? 'One feed answered, still waiting on the other\u2026' : '', '');
+      }
+      // A relay that is rate-limiting us says so, rather than leaving the
+      // reader watching a spinner that means nothing.
+      if (u.notes && u.notes.length) {
+        setStatus(u.notes[0], 'status__wait');
+      } else if (arrived && u.pending && u.pending.length) {
+        setStatus('One feed answered, still waiting on the other\u2026', 'status__wait');
+      } else if (arrived) {
+        setStatus('', '');
       }
     }).then(function (res) {
       if (timer) { clearInterval(timer); timer = null; }
       setStatus('', '');
 
       if (!res.items.length) {
+        // A timeout is a failure, not an empty result. Never let the two blur.
         if (res.errors.length) showError(res.errors, query);
         else showEmpty();
         return;

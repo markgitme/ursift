@@ -1,5 +1,49 @@
 # Changelog
 
+## v0.4.1 — the relay layer, rebuilt after it failed in the field
+
+v0.4.0 shipped and then failed every search for Mark, while the same searches
+worked from the sandbox. The cause was not a mystery and not Google's fault —
+it was three separate mistakes in how the relays were being used.
+
+**1. The race was eating its own rate limit.** v0.4.0 fired 3 relays × 2 feeds
+= 6 requests at once, two of them to `cors.lol` — which allows roughly one
+request every few minutes. Asking it twice in one search burned its window.
+`cors.lol` is now spent on the Google feed only: **exactly one request per
+search.** allorigins, which has no practical limit, handles both feeds.
+
+**2. The timeout was shorter than the job.** A cold Google News fetch through
+allorigins legitimately takes up to about 25 seconds. The timeout was 15 s, so
+the request was being killed just before it could answer. It is now 26 s.
+
+**3. Transient failures were treated as permanent.** allorigins intermittently
+answers 500/520/522 — it was seen serving 520 for a plain `example.com` while
+working fine seconds later. Those now get retried with growing patience
+(5 s, 12 s, 22 s), as does a 429.
+
+**What was measured, and is now known rather than guessed:**
+- Google News RSS direct: **0.39 s**, 48–100 items, never bot-blocked.
+- allorigins **can** fetch a cold target — 54 items from Google, 8 from Bing,
+  on a fresh query. It is slow and it flickers, but it works.
+- cors.lol is the fast cold path (1.2 s, 100 items) and the strictest limit.
+- rss2json is behind a Cloudflare challenge a browser cannot clear. Dead.
+- Yahoo (500/429), Mojeek (403), Startpage (no RSS), corsproxy.io (401),
+  corsfix (403), codetabs (522), thingproxy (dead), whateverorigin (returns
+  HTML), cors.eu.org (429), isomorphic-git (403) — all non-starters.
+
+**Also in this version:**
+- A **100-second hard deadline**, so a bad afternoon at the relay cannot hang
+  the page for ever. A deadline that expires with nothing to show is
+  reported as a failure, never as "nothing matched".
+- **The technical details now name the actual reason per relay** — the HTTP
+  status, the timeout, or "did not return a feed" — instead of the useless
+  "no relay answered".
+- **A relay that is rate-limiting or stumbling says so on screen** while it
+  waits, instead of leaving a silent spinner running.
+- **A Cloudflare Worker on the same origin is now detected automatically**
+  and used in place of every relay, with no rebuild. One `?q=__probe__`
+  request decides it.
+
 ## v0.4.0 — the rename, and a rebuild down to one bar and one button
 
 The project is now called **ursift**. "Watch" was dropped from the name: it
