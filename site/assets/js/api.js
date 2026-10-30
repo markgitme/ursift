@@ -361,8 +361,19 @@
 
   function detectWorker() {
     if (workerProbe) return workerProbe;
-    workerProbe = fetch(WORKER_PATH + '?q=__probe__&mode=all')
-      .then(function (r) { return r.ok; })
+    // An EMPTY query: the Worker answers that with {"items":[]} straight away,
+    // without going near a feed. A static host, meanwhile, answers the unknown
+    // path /api/search with index.html and a 200 — so "the request succeeded"
+    // proves nothing. Only a JSON body carrying an items array counts.
+    workerProbe = fetch(WORKER_PATH + '?q=')
+      .then(function (r) {
+        if (!r.ok) return false;
+        return r.text().then(function (txt) {
+          var j;
+          try { j = JSON.parse(txt); } catch (e) { return false; }
+          return !!(j && Array.isArray(j.items));
+        });
+      })
       .catch(function () { return false; });
     return workerProbe;
   }
