@@ -48,24 +48,24 @@
       url: function (u) { return 'https://api.allorigins.win/get?url=' + enc(u); },
       extract: jsonContents,
       timeout: 12000,
-      retries: 3,
-      retryWait: 2500
+      attempts: 6,
+      wait: 3000
     },
     'allorigins.raw': {
       name: 'allorigins.raw',
       url: function (u) { return 'https://api.allorigins.win/raw?url=' + enc(u); },
       extract: identity,
       timeout: 12000,
-      retries: 3,
-      retryWait: 2500
+      attempts: 6,
+      wait: 4500
     },
     'cors.lol': {
       name: 'cors.lol',
       url: function (u) { return 'https://api.cors.lol/?url=' + enc(u); },
       extract: identity,
       timeout: 12000,
-      retries: 1,
-      retryWait: 20000
+      attempts: 2,
+      wait: 20000
     }
   };
 
@@ -157,7 +157,7 @@
    * message is treated as transient and retried, because it is the common
    * case and because the status that would have identified a rate limit is
    * never visible to the browser in the first place. */
-  function raceRelays(url, relayNames, reasons, notes, signal) {
+  function raceRelays(url, relayNames, reasons, notes, signal, deadlineAt) {
     var relays = relayNames.map(function (n) { return RELAYS[n]; });
     var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
 
@@ -175,7 +175,7 @@
         if (ctl) { try { ctl.abort(); } catch (e) { /* ignore */ } }
         resolve({ text: text, relay: name });
       }
-      function attempt(r, retriesLeft) {
+      function attempt(r, left) {
         fetchText(r.url(url), r.timeout, ctl ? linkSignals(ctl.signal, signal) : signal).then(function (txt) {
           var body = r.extract(txt);
           if (!/<rss|<feed/i.test(body)) throw new Error('did not return a feed');
@@ -191,15 +191,21 @@
             return;
           }
 
-          var tries = (r.retries || 0) - retriesLeft + 1;
-          var total = (r.retries || 0) + 1;
-          if (retriesLeft > 0) {
+          var wait = r.wait || 3000;
+          var total = r.attempts || 1;
+          var tries = total - left + 1;
+
+          // Retry until the attempts run out OR the search's deadline is in
+          // sight. A relay that fails FAST (a 522 comes back in a moment)
+          // must not use up its attempts in a few seconds and then give up
+          // while there is still time left to try again.
+          if (left > 1 && Date.now() + wait < deadlineAt) {
             var note = r.name + ' didn\'t answer \u2014 trying again (' + tries + ' of ' + total + ')';
             if (notes.indexOf(note) === -1) notes.push(note);
             setTimeout(function () {
               if ((ctl && ctl.signal.aborted) || (signal && signal.aborted)) { lose(); return; }
-              attempt(r, retriesLeft - 1);
-            }, r.retryWait || 8000);
+              attempt(r, left - 1);
+            }, wait);
             return;
           }
           reasons.push(r.name + ': ' + msg);
@@ -207,7 +213,7 @@
         });
       }
 
-      relays.forEach(function (r) { attempt(r, r.retries || 0); });
+      relays.forEach(function (r) { attempt(r, r.attempts || 1); });
     });
   }
 
@@ -346,7 +352,7 @@
       onUpdate({ source: source, items: items || [], pending: [], errors: [], notes: notes.slice() });
     }
 
-    var pg = raceRelays(googleUrl(query, region), FEED_RELAYS, reasons, notes, signal)
+    var pg = raceRelays(googleUrl(query, region), FEED_RELAYS, reasons, notes, signal, Date.now() + SEARCH_DEADLINE)
       .then(function (hit) {
         if (!hit) throw new Error('no relay answered');
         items = parseRss(hit.text).map(googleItem);
