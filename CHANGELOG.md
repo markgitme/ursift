@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.5.5 — the Worker stops shouting, and a link resolves when you reach it
+
+Google started answering Cloudflare's edge with **HTTP 503**. Every search
+took 20-27 seconds and returned a handful of items. The sandbox could still
+reach Google in 0.37 s, so Google was not down — this Worker was too loud.
+
+### Why it was too loud
+Resolving a Google News link to the publisher's own URL costs **two
+requests**. The search path resolved the head of the list, so one search cost
+**26 to 80 requests** to Google from a single IP. That is what a scraper
+looks like, and it is what earned the 503s. (The same 40-item head also blew
+Cloudflare's own limit of 50 subrequests per invocation, which is why the
+links came back unresolved.)
+
+### The search is quiet now
+- A search costs **two requests**: the feed, and the second-opinion feed.
+- The list is served the way the feed has it.
+- A link is resolved **when the visitor reaches it** — the pointer rests on
+  it, or it takes focus. One request, for the one article somebody is about
+  to click. If the resolution fails, the Google News link stays, and it
+  still works.
+
+### A slow answer is cut off
+Google's 503 took 8.7 seconds to arrive, so three attempts of it was 26
+seconds of waiting. Each attempt now has a 5-second budget, and a 4xx is
+treated as an answer rather than as something worth retrying.
+
+### The note says what is true
+"links open through Google News, and resolve to the publisher as you reach
+them".
+
+
 ## v0.5.4 — Google is the backbone, and a deploy never inherits a poisoned cache
 
 Two more things the live Worker was getting wrong, both found by reading what

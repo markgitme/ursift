@@ -111,13 +111,30 @@ def test_worker_answers(page):
     links = [e.get_attribute("href") for e in page.query_selector_all(".result__link")]
     check("every result links out", all(l and l.startswith("http") for l in links), str(links[:2]))
 
-    # The Worker resolves the head of the list to the publisher's own URL.
-    # The rest stay Google News links on purpose — resolving every item
-    # costs more requests than Cloudflare allows in one invocation.
-    head = links[:12]
-    check("the head of the list points at publishers, not at Google",
-          all("news.google.com" not in (l or "") for l in head),
-          str([l for l in head if l and "news.google.com" in l][:2]))
+    # The list is served the way the feed has it. Resolving every link was
+    # what made the Worker loud enough for Google to answer with 503.
+    check("the list is not resolved before the visitor reaches it",
+          any("news.google.com" in (l or "") for l in links),
+          str(links[:2]))
+
+    # Reaching a link resolves it — one request, for the one article
+    # somebody is about to click.
+    resolve_calls = []
+
+    def on_resolve(r):
+        if "/api/resolve" in r.url:
+            resolve_calls.append(r.url)
+
+    page.on("request", on_resolve)
+    page.hover(".result:first-child")
+    page.wait_for_timeout(6000)
+    check("reaching a link asks the Worker to resolve it",
+          len(resolve_calls) > 0, str(resolve_calls[:1]))
+    page.remove_listener("request", on_resolve)
+
+    href_now = page.query_selector(".result__link").get_attribute("href")
+    check("the link still points somewhere real",
+          (href_now or "").startswith("http"), (href_now or "")[:80])
 
     note = page.query_selector(".results__note")
     note_text = note.text_content() if note else ""

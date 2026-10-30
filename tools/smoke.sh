@@ -154,26 +154,62 @@ else
   bad "the list was shortened: $got items returned, $want in the feed"
 fi
 
-# 6. the head of the list must be resolved to the publisher's own URL.
-#    The Worker resolves a fixed number of items — enough for the top of the
-#    list, not the whole list, because each resolution costs two requests and
-#    Cloudflare allows 50 subrequests per invocation.
-head_url="$(printf '%s' "$body" | python3 -c '
+# 6. the search must NOT resolve the links itself. Resolving one article
+#    costs two requests, so doing it for every link made the Worker the
+#    loudest thing on the edge — and Google answered with 503.
+google_items="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    items = json.load(sys.stdin).get("items") or []
+except Exception:
+    print(0); raise SystemExit
+print(sum(1 for i in items if i.get("via") == "google"))
+' 2>/dev/null || echo 0)"
+still_google="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    items = json.load(sys.stdin).get("items") or []
+except Exception:
+    print(0); raise SystemExit
+print(sum(1 for i in items
+          if i.get("via") == "google" and "news.google.com" in (i.get("url") or "")))
+' 2>/dev/null || echo 0)"
+if [ "$google_items" = "0" ]; then
+  ok "no Google items to check (the second feed answered)"
+elif [ "$google_items" = "$still_google" ]; then
+  ok "the search left $google_items link(s) for the visitor to reach"
+else
+  bad "the search resolved $((google_items - still_google)) link(s) itself"
+fi
+
+# 7. a link resolves on demand, one at a time
+one_url="$(printf '%s' "$body" | python3 -c '
 import sys, json
 try:
     items = json.load(sys.stdin).get("items") or []
 except Exception:
     print(""); raise SystemExit
-print(items[0].get("url", "") if items else "")
+for i in items:
+    if "news.google.com" in (i.get("url") or ""):
+        print(i.get("url")); break
 ' 2>/dev/null || echo '')"
-case "$head_url" in
-  *news.google.com*)
-    bad "the first result was still a Google News wrapper" ;;
-  http*)
-    ok "the head of the list is resolved to publisher URLs" ;;
-  *)
-    bad "no first result to check" ;;
-esac
+if [ -z "$one_url" ]; then
+  ok "no Google link to resolve on demand"
+else
+  resolved="$(curl -sS --max-time 45 "$BASE/api/resolve?u=$(printf '%s' "$one_url" | sed 's/?/%3F/g; s/&/%26/g; s/=/%3D/g; s/:/%3A/g; s,/,%2F,g')" 2>/dev/null | python3 -c '
+import sys, json
+try:
+    u = (json.load(sys.stdin) or {}).get("url") or ""
+except Exception:
+    u = ""
+print("publisher" if (u and "news.google.com" not in u) else "wrapper")
+' 2>/dev/null || echo wrapper)"
+  if [ "$resolved" = "publisher" ]; then
+    ok "one link resolves to the publisher on demand"
+  else
+    bad "the on-demand resolution did not produce a publisher URL"
+  fi
+fi
 
 # 6. the second search must come out of the cache and still be correct
 body2="$(curl -sS --max-time 60 "$BASE/api/search?q=$(printf '%s' "$QUERY" | sed 's/ /%20/g')&region=US:en" 2>/dev/null)"

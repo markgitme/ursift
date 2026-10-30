@@ -25,12 +25,7 @@ const UA = 'Mozilla/5.0 (compatible; ursift/1.0; +https://github.com/markgitme/u
 const CACHE_VERSION = 3;             // bumped on deploys, so a fix takes effect at once
 const RSS_TTL = 60 * 60;            // 1 hour for a raw feed
 const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never changes
-// Resolving one article costs two requests (the article page, then the
-// batchexecute call). Cloudflare allows 50 subrequests per invocation, so a
-// 40-item head meant 82 requests: the limit was hit, every resolution failed,
-// and all 40 links came back as Google wrappers. 12 items costs 26 — and the
-// ones past it still work, they just go through Google News.
-const RESOLVE_LIMIT = 12;
+const FEED_TIMEOUT = 5000;          // a feed that has not answered in 5s is not coming
 const state = { lastSuccess: null, lastError: null };            // resolve at most this many per search
 
 /* ------------------------------------------------------------------ cache */
@@ -64,9 +59,12 @@ async function fetchFeed(url, attempts = 3) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
     try {
-      return await fetchText(url);
+      return await fetchText(url, { timeout: FEED_TIMEOUT });
     } catch (e) {
       last = e;
+      // A 4xx is the feed saying no: retrying it only spends the visitor's
+      // time. A 5xx, a timeout or a dead connection is worth another go.
+      if (e.status && e.status >= 400 && e.status < 500) break;
       if (i < attempts - 1) await sleep(500 * (i + 1));
     }
   }
@@ -74,17 +72,44 @@ async function fetchFeed(url, attempts = 3) {
 }
 
 async function fetchText(url, opts = {}) {
-  const res = await fetch(url, {
-    method: opts.method || 'GET',
-    headers: {
-      'User-Agent': UA,
-      'Accept-Language': 'en-US,en;q=0.9',
-      ...(opts.body ? { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' } : {}),
-    },
-    body: opts.body,
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`);
-  return res.text();
+  const ctrl = new AbortController();
+  let timedOut = false;
+  let timer = null;
+  if (opts.timeout) {
+    timer = setTimeout(() => {
+      timedOut = true;
+      try { ctrl.abort(); } catch (e) { /* ignore */ }
+    }, opts.timeout);
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: opts.method || 'GET',
+      headers: {
+        'User-Agent': UA,
+        'Accept-Language': 'en-US,en;q=0.9',
+        ...(opts.body ? { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' } : {}),
+      },
+      body: opts.body,
+      signal: ctrl.signal,
+    });
+    if (!res.ok) {
+      const err = new Error(`HTTP ${res.status} from ${new URL(url).host}`);
+      err.status = res.status;
+      throw err;
+    }
+    return await res.text();
+  } catch (e) {
+    if (timedOut) {
+      const err = new Error(`no answer within ${Math.round(opts.timeout / 1000)}s`);
+      err.transient = true;
+      throw err;
+    }
+    if (!e.status) e.transient = true;   // a dead connection or a reset
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 /* ------------------------------------------------------------------ parse */
@@ -334,27 +359,23 @@ export default {
         state.lastSuccess = new Date().toISOString();
         state.lastError = null;
 
-        // Resolve the visible head of the list to real publisher URLs.
-        // Cached per article, so this cost is paid once per story, ever.
-        // The rest of the list is kept as it is: a Google News link still
-        // works, and dropping it would quietly shorten every result set to
-        // the size of the resolution budget.
-        const head = items.slice(0, RESOLVE_LIMIT);
-        const resolvedHead = await Promise.all(head.map(async (it) => {
-          if (!it.needsResolve) return it;
-          try {
-            const real = await resolveGoogleLink(it.url);
-            return real ? { ...it, url: real, needsResolve: false } : it;
-          } catch { return it; }
-        }));
-        const resolved = resolvedHead.concat(items.slice(RESOLVE_LIMIT));
-
+        // The links are NOT resolved here.
+        //
+        // Resolving one article costs two requests, so resolving a list meant
+        // 26 to 80 requests for a single search — against a limit of 50 per
+        // invocation, and it was by far the loudest thing this Worker did.
+        // Google started answering Cloudflare's edge with 503, which turned
+        // every search into a 25-second wait.
+        //
+        // The list is served the way the feed has it, and a link is resolved
+        // when the visitor actually reaches it. One request, for the one
+        // article somebody is about to click.
         return json({
           query, mode,
           generatedAt: new Date().toISOString(),
           cached,
           total: items.length,
-          items: resolved,
+          items,
           errors: errors || []
         });
       } catch (e) {

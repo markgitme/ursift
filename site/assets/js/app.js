@@ -54,6 +54,44 @@
     return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
   }
 
+  /* A Google News link is a wrapper: it bounces on to the publisher, which
+   * works, but it shows news.google.com in the status bar. The Worker can
+   * resolve it to the publisher's own URL — at two requests a piece. Doing
+   * that for every link on the page meant dozens of requests for one
+   * search, which is how this Worker became loud enough for Google to
+   * answer with 503. So a link is resolved when the visitor reaches it:
+   * one request, for the one article somebody is about to click.
+   *
+   * If the resolution fails, the Google News link stays, and it still works. */
+  function resolveOnReach(a, li) {
+    var timer = null;
+    var asked = false;
+
+    function ask() {
+      if (asked) return;
+      asked = true;
+      var u = a.getAttribute('href') || '';
+      if (u.indexOf('https://news.google.com/') !== 0) return;
+      fetch('/api/resolve?u=' + encodeURIComponent(u))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j && j.url) a.setAttribute('href', j.url); })
+        .catch(function () { /* the Google News link still works */ });
+    }
+
+    function onEnter() {
+      if (timer) return;
+      timer = setTimeout(ask, 250);
+    }
+    function onLeave() {
+      if (timer) { clearTimeout(timer); timer = null; }
+    }
+
+    li.addEventListener('mouseenter', onEnter);
+    li.addEventListener('mouseleave', onLeave);
+    li.addEventListener('focusin', onEnter);
+    li.addEventListener('focusout', onLeave);
+  }
+
   function render(items) {
     clear(resultsEl);
     if (!items || !items.length) return;
@@ -79,6 +117,8 @@
       }
       li.appendChild(meta);
 
+      resolveOnReach(a, li);
+
       list.appendChild(li);
     });
     resultsEl.appendChild(list);
@@ -94,7 +134,7 @@
     if (viaGoogle === 0) {
       tail = 'links open directly on the publisher';
     } else if (viaGoogle === items.length) {
-      tail = 'links open through Google News';
+      tail = 'links open through Google News, and resolve to the publisher as you reach them';
     } else {
       tail = 'the top ' + (items.length - viaGoogle) +
         ' open on the publisher, the rest through Google News';
