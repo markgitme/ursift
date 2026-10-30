@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.5.8 — a third party is only asked when Google has not answered
+
+The three routes to the feed were started all at once, so **every** search
+sent a request to Google, to cors.lol and to allorigins — even when Google
+answered in 0.13 s and the other two were pointless.
+
+The two relay routes now wait 400 ms before they start, and if Google has
+answered by then they never start at all. In the usual case a search is now
+**one request, to Google**. The relays are free services run by people, and
+their limits are shared with everybody else, so they are only spent when the
+direct route has already failed.
+
+The response reports which routes were started (`started`), and the smoke test
+checks it: when the direct route answered, no third party was touched.
+
+
 ## v0.5.7 — the visitor's own address is the reliable one
 
 From the edge, **Google stalls and both relays answer 429**. The relays

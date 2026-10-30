@@ -201,7 +201,25 @@ case "$route" in
     bad "the search did not report a route (route='$route')" ;;
 esac
 
-# 8. a link resolves on demand, one at a time
+# 8. when the direct route answers, no third party is touched at all
+started="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    print(",".join(json.load(sys.stdin).get("started") or []))
+except Exception:
+    print("")
+' 2>/dev/null || echo '')"
+if [ "$route" = "google" ]; then
+  if [ "$started" = "google" ]; then
+    ok "only Google was asked \u2014 no third-party relay was touched"
+  else
+    bad "a relay was used even though Google answered (started=$started)"
+  fi
+else
+  ok "the relay routes were used because the direct route did not answer (started=$started)"
+fi
+
+# 9. a link resolves on demand, one at a time
 one_url="$(printf '%s' "$body" | python3 -c '
 import sys, json
 try:

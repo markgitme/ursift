@@ -46,10 +46,17 @@ const RELAY_TIMEOUT = 6000;
  *
  * The cost of the race is two requests to third parties, and still exactly
  * one request to Google. */
+// The direct route answers in 0.13 s when it works, so the two relay routes
+// wait this long before they even start. If Google answers in time — the
+// usual case — not a single request is sent to a third party. The relays are
+// free services run by people, and their limits are shared with everybody
+// else, so they are only spent when the direct route has already failed.
+const FEED_STAGGER = 400;
+
 const FEED_ROUTES = [
-  { name: 'google', timeout: FEED_TIMEOUT, url: (u) => u },
-  { name: 'cors.lol', timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
-  { name: 'allorigins', timeout: RELAY_TIMEOUT, url: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
+  { name: 'google', delay: 0, timeout: FEED_TIMEOUT, url: (u) => u },
+  { name: 'cors.lol', delay: FEED_STAGGER, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
+  { name: 'allorigins', delay: FEED_STAGGER, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
 ];
 const state = { lastSuccess: null, lastError: null, lastRoute: null };            // resolve at most this many per search
 
@@ -97,22 +104,30 @@ function sleep(ms) {
 async function fetchFeedRaced(url) {
   const ctl = new AbortController();
   const failures = [];
+  const started = [];
 
-  const routes = FEED_ROUTES.map((route) =>
-    fetchText(route.url(url), { timeout: route.timeout, signal: ctl.signal })
-      .then((xml) => {
-        if (!/<item>/.test(xml)) {
-          failures.push(route.name + ': no items in the feed');
-          return null;
-        }
-        try { ctl.abort(); } catch (e) { /* ignore */ }
-        return { xml: xml, route: route.name };
-      })
-      .catch((e) => {
-        failures.push(route.name + ': ' + (e.message || String(e)));
-        return null;
-      })
-  );
+  const routes = FEED_ROUTES.map((route) => new Promise((resolve) => {
+    setTimeout(() => {
+      // Another route already answered. This one never starts, so the request
+      // is never sent.
+      if (ctl.signal.aborted) { resolve(null); return; }
+      started.push(route.name);
+      fetchText(route.url(url), { timeout: route.timeout, signal: ctl.signal })
+        .then((xml) => {
+          if (!/<item>/.test(xml)) {
+            failures.push(route.name + ': no items in the feed');
+            resolve(null);
+            return;
+          }
+          try { ctl.abort(); } catch (e) { /* ignore */ }
+          resolve({ xml: xml, route: route.name, started: started.slice() });
+        })
+        .catch((e) => {
+          failures.push(route.name + ': ' + (e.message || String(e)));
+          resolve(null);
+        });
+    }, route.delay || 0);
+  }));
 
   const winner = await new Promise((resolve) => {
     let pending = routes.length;
@@ -359,12 +374,12 @@ async function search({ query, mode, sources, region }) {
     const saved = await hit.json();
     // Older entries were a bare array. Read both shapes rather than serving
     // an empty list to a cache written before the route was recorded.
-    if (Array.isArray(saved)) return { items: saved, cached: true, errors: [], route: '' };
-    return { items: saved.items || [], cached: true, errors: [], route: saved.route || '' };
+    if (Array.isArray(saved)) return { items: saved, cached: true, errors: [], route: '', started: [] };
+    return { items: saved.items || [], cached: true, errors: [], route: saved.route || '', started: saved.started || [] };
   }
 
   const [g, b] = await Promise.all([
-    fetchFeedRaced(gnewsUrl(effective, region)).then(x => ({ xml: x.xml, route: x.route, err: null }), e => ({ xml: '', route: '', err: e })),
+    fetchFeedRaced(gnewsUrl(effective, region)).then(x => ({ xml: x.xml, route: x.route, started: x.started, err: null }), e => ({ xml: '', route: '', started: [], err: e })),
     fetchFeed(`${BING}?q=${encodeURIComponent(query)}&format=RSS`).then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e })),
   ]);
 
@@ -398,12 +413,12 @@ async function search({ query, mode, sources, region }) {
   // empty search that stayed empty all day.
   const route = g.route || '';
   if (!feedErrors.length) {
-    await cachePut(cacheKey, new Response(JSON.stringify({ items: filtered, route: route }), {
+    await cachePut(cacheKey, new Response(JSON.stringify({ items: filtered, route: route, started: g.started || [] }), {
       headers: { 'Content-Type': 'application/json' },
     }), RSS_TTL);
   }
 
-  return { items: filtered, cached: false, errors: feedErrors, route: route };
+  return { items: filtered, cached: false, errors: feedErrors, route: route, started: g.started || [] };
 }
 
 /* ------------------------------------------------------------------ route */
@@ -445,7 +460,7 @@ export default {
       if (!query.trim()) return json({ items: [] });
 
       try {
-        const { items, cached, errors, route } = await search({ query, mode, sources, region });
+        const { items, cached, errors, route, started } = await search({ query, mode, sources, region });
         state.lastSuccess = new Date().toISOString();
         state.lastError = null;
         state.lastRoute = route || null;
@@ -468,6 +483,7 @@ export default {
           total: items.length,
           items,
           route: route || '',
+          started: started || [],
           errors: errors || []
         });
       } catch (e) {
