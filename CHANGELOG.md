@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.5.7 — the visitor's own address is the reliable one
+
+From the edge, **Google stalls and both relays answer 429**. The relays
+throttle shared cloud addresses, and Google is slow with Cloudflare's
+addresses — so the Worker, which lives on the edge, is the worst place in the
+whole system to fetch a feed.
+
+The visitor's browser is a different story. The relays reach Google from
+*their* address, and a residential address is not shared with anyone.
+
+So the two paths are used for what each is good at:
+
+- The **Worker** is the fast path. It answers in 0.13 s when the edge can
+  reach Google, and it now gives up quickly when it cannot — a budget of
+  2.5 s instead of 5 s, because a slow failure only makes the visitor wait
+  longer for the path that does work.
+- When the Worker's answer is **thin** — it could not reach the main feed and
+  has only the second-opinion feed — the relays are asked as well, and their
+  answer replaces the thin one when it is the better of the two. The thin
+  list stays on screen meanwhile, so nobody is left staring at nothing.
+
+Nothing about the visitor's own address is spent on a search that the Worker
+answered cleanly.
+
+
 ## v0.5.6 — three routes to the same feed
 
 Google is slow with Cloudflare's egress addresses. Measured from a single

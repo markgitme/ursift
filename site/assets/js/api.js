@@ -417,7 +417,23 @@
     return detectWorker().then(function (hasWorker) {
       if (!hasWorker) return search(query, region, onUpdate, signal);
 
-      return workerSearch(query, region, onUpdate, signal).catch(function (err) {
+      return workerSearch(query, region, onUpdate, signal).then(function (res) {
+        // The Worker answered, but it could not reach the main feed, so what
+        // it has is the thin second-opinion feed. The relays reach Google
+        // from the visitor's own address — a different address from the
+        // edge's — so ask them as well and take their answer when it is the
+        // better one. The thin list stays on screen meanwhile.
+        if (res.errors.length && res.items.length) {
+          return search(query, region, onUpdate, signal).then(function (relay) {
+            if (relay.items && relay.items.length > res.items.length) {
+              relay.errors = (relay.errors || []).concat(res.errors);
+              return relay;
+            }
+            return res;
+          }, function () { return res; });
+        }
+        return res;
+      }).catch(function (err) {
         // Cancelled, not failed. A newer search took over — there is nothing
         // to fall back to and nobody left to answer.
         if (signal && signal.aborted) throw err;

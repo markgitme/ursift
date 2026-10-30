@@ -25,8 +25,12 @@ const UA = 'Mozilla/5.0 (compatible; ursift/1.0; +https://github.com/markgitme/u
 const CACHE_VERSION = 4;             // bumped on deploys, so a fix takes effect at once
 const RSS_TTL = 60 * 60;            // 1 hour for a raw feed
 const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never changes
-const FEED_TIMEOUT = 5000;          // a feed that has not answered in 5s is not coming
-const RELAY_TIMEOUT = 12000;        // a relay is allowed to be slower than Google is
+// The good case answers in 0.13 s from the edge. A budget much past two
+// seconds only buys a slower failure, and a slow failure delays the visitor
+// while the reliable path — the relays, from the visitor's own address —
+// waits to be asked.
+const FEED_TIMEOUT = 2500;
+const RELAY_TIMEOUT = 6000;
 
 /* Three routes to the same Google News feed.
  *
