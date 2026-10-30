@@ -22,6 +22,7 @@ const BING = 'https://www.bing.com/news/search';
 // (100 vs 57) than the Chrome impersonation did.
 const UA = 'Mozilla/5.0 (compatible; ursift/1.0; +https://github.com/markgitme/ursift)';
 
+const CACHE_VERSION = 3;             // bumped on deploys, so a fix takes effect at once
 const RSS_TTL = 60 * 60;            // 1 hour for a raw feed
 const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never changes
 // Resolving one article costs two requests (the article page, then the
@@ -240,8 +241,12 @@ async function search({ query, mode, sources, region }) {
   const siteClause = srcs.length ? '(' + srcs.map(d => `site:${d}`).join(' OR ') + ') ' : '';
   const effective = mode === 'all' ? query : siteClause + query;
 
+  // The version in the key busts the cache on every deploy. Without it, a
+  // failure cached by an older build stays cached for its whole hour — a
+  // deploy that fixes the bug still serves the broken answer.
   const cacheKey = new Request('https://ursift.internal/feed?u=' +
-    encodeURIComponent(effective) + '&r=' + encodeURIComponent(region || 'US:en'));
+    encodeURIComponent(effective) + '&r=' + encodeURIComponent(region || 'US:en') +
+    '&v=' + CACHE_VERSION);
   const hit = await cacheGet(cacheKey);
   if (hit) return { items: await hit.json(), cached: true };
 
@@ -266,6 +271,14 @@ async function search({ query, mode, sources, region }) {
   const filtered = mode === 'only' && srcs.length
     ? items.filter(it => it.domain && srcs.includes(it.domain))
     : items;
+
+  // Google is the backbone. If Google failed and what is left is nothing,
+  // then "nothing matched" is a lie: the search was never really answered,
+  // and Bing answering with an empty feed is not an answer. Say so, so the
+  // interface can fall back to the relays instead of showing an empty list.
+  if (g.err && !filtered.length) {
+    throw new Error('the main feed failed and the second feed had nothing — ' + feedErrors.join('; '));
+  }
 
   // A result that came out of a failed fetch is not a result. Caching it would
   // freeze the failure for an hour, which is how one bad minute became an

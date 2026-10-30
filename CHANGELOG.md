@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.5.4 — Google is the backbone, and a deploy never inherits a poisoned cache
+
+Two more things the live Worker was getting wrong, both found by reading what
+it actually returned.
+
+### "Nothing matched" was sometimes a lie
+The Worker is honest about a failed feed, but it was still answering with an
+empty list in one case: **Google failed, and Bing's second-opinion feed came
+back with nothing.** Bing's feed answers with an empty list for most queries,
+so that combination looked exactly like "no results for this wording" — when
+in fact the search was never really answered.
+
+Google is the backbone, so now: if Google failed and what is left is nothing,
+the Worker answers with an error instead of an empty list, and the interface
+falls back to the relays.
+
+### A deploy could not clear a bad cache
+The edge cache was keyed by the query and the region alone. A failure cached
+by an older build stayed cached for its whole hour — so a deploy that fixed
+the bug still served the broken answer to anyone who searched the same words.
+The cache key carries a version now, so every deploy starts clean.
+
+
 ## v0.5.3 — a failed feed is no longer allowed to look like an empty result
 
 v0.5.2 made the Worker run. It ran, and the live site started answering — but
