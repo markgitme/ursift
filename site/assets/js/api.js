@@ -1,43 +1,43 @@
 /* ursift — data layer.
  *
- * Two feeds, one output shape. The interface never has to know which one
- * answered.
+ * One feed, one shape. The interface never has to know which relay answered.
  *
- *   Google News RSS — the backbone. Broad coverage: 84–100 items for most
- *     queries. Its links point at news.google.com, which bounces a browser
- *     straight on to the publisher (verified: a Google News item link lands
- *     on the publisher's own site in under two seconds).
+ *   Google News RSS — the only feed. It covers 84–100 items for most queries.
+ *     Its links point at news.google.com, which bounces a browser straight on
+ *     to the publisher (verified: a Google News item link lands on the
+ *     publisher's own site in under two seconds).
  *
- *   Bing News RSS — thin, and sometimes very thin: one item for some queries,
- *     fourteen for others. Its links are the publisher's own URL, so a
- *     headline it also carries opens directly instead of bouncing. It is the
- *     second opinion, not the backbone.
+ * Bing was dropped from the browser path on purpose. It added two of the five
+ * requests a search used to fire, brought its own failure states, and merged
+ * only 1–14 items against Google's 84–100. Its real value — publisher URLs
+ * that need no Google hop — is done properly by the Worker, which resolves
+ * them server-side where a browser cannot.
  *
- * Neither feed sends CORS headers, so a browser cannot read either one
- * directly. Everything goes through a public relay, and the relays are
- * awkward in different ways:
+ * Neither feed sends CORS headers, so a browser cannot read one directly.
+ * Everything goes through a public relay, and the relays are awkward in
+ * different ways:
  *
- *   allorigins — serves a query it has already cached, instantly. A cold
- *     query takes it 24 seconds and then fails (408/500/522), because
- *     fetching a cold Google News RSS is slower than its own upstream
- *     budget allows. Its ERROR responses carry no CORS header at all, so the
- *     browser reports them as a CORS failure rather than an HTTP error.
+ *   allorigins — no practical rate limit, but flaky. A cold target usually
+ *     comes back in 5–7 seconds and sometimes not at all. Its ERROR responses
+ *     carry no CORS header, so the browser reports them as a CORS failure
+ *     rather than an HTTP error, and its status code is never visible.
  *
- *   cors.lol — the only relay measured that can fetch a COLD query (1.2 s,
- *     100 items). But it allows roughly one request every few minutes, and
- *     it answers HTTP 429 for the rest.
+ *   cors.lol — the fast cold path (about 1.2 s for 100 items) and the
+ *     strictest limit: roughly one request every few minutes, answering 429
+ *     for the rest of the time.
  *
- * So the two are used differently. allorigins handles both feeds, because it
- * has no practical limit and repeat queries are cached there. cors.lol is
- * spent only on the Google feed — ONE request per search, because asking it
- * twice in the same search is what used to burn its window.
+ * So allorigins is retried often and briefly, because it is flaking rather
+ * than throttling; cors.lol is spent on exactly ONE request per search and
+ * waited out patiently, because a rate limit is the one thing that clears on
+ * its own.
  *
  * If a Cloudflare Worker is deployed on the same origin, it is used instead
- * and none of this applies. The worker fetches from Cloudflare's edge, where
- * Google answers in 0.39 s, caches the result, and there is no third-party
- * rate limit to trip over.
+ * and none of this applies. The Worker fetches from Cloudflare's edge, where
+ * Google answers in 0.39 s, caches the result, and resolves publisher URLs
+ * server-side. There is no third-party rate limit to trip over.
  *
- * Nothing here runs on page load. A fetch only happens when the user sifts.
+ * Nothing here runs on page load. A fetch only happens when the user sifts,
+ * and a new search cancels the one before it.
  */
 (function (global) {
   'use strict';
@@ -47,19 +47,17 @@
       name: 'allorigins.get',
       url: function (u) { return 'https://api.allorigins.win/get?url=' + enc(u); },
       extract: jsonContents,
-      timeout: 26000,
+      timeout: 12000,
       retries: 3,
-      retryWait: 5000,
-      retryWaits: [5000, 12000, 22000]
+      retryWait: 2500
     },
     'allorigins.raw': {
       name: 'allorigins.raw',
       url: function (u) { return 'https://api.allorigins.win/raw?url=' + enc(u); },
       extract: identity,
-      timeout: 26000,
+      timeout: 12000,
       retries: 3,
-      retryWait: 5000,
-      retryWaits: [5000, 12000, 22000]
+      retryWait: 2500
     },
     'cors.lol': {
       name: 'cors.lol',
@@ -71,15 +69,13 @@
     }
   };
 
-  // Which relays each feed may spend. cors.lol goes to the backbone only:
-  // it is the one request it gets per search.
-  var FEED_RELAYS = {
-    google: ['allorigins.get', 'allorigins.raw', 'cors.lol'],
-    bing: ['allorigins.get', 'allorigins.raw']
-  };
+  // Which relays the feed may spend. cors.lol gets exactly one request per
+  // search: asking it twice is what used to burn its window.
+  var FEED_RELAYS = ['allorigins.get', 'allorigins.raw', 'cors.lol'];
 
   var DEFAULT_REGION = 'PH:en';
   var WORKER_PATH = '/api/search';
+  var SEARCH_DEADLINE = 45000;
 
   function enc(u) { return encodeURIComponent(u); }
 
@@ -88,9 +84,24 @@
     catch (e) { return ''; }
   }
 
+  /* ---------------- signals ---------------- */
+
+  // One signal that aborts when either of its parents does.
+  function linkSignals(a, b) {
+    if (!b) return a;
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.any === 'function') {
+      return AbortSignal.any([a, b]);
+    }
+    var c = new AbortController();
+    function abort() { try { c.abort(); } catch (e) { /* ignore */ } }
+    if (a.aborted) abort(); else a.addEventListener('abort', abort);
+    if (b.aborted) abort(); else b.addEventListener('abort', abort);
+    return c.signal;
+  }
+
   /* ---------------- fetching ---------------- */
 
-  function fetchText(url, timeoutMs) {
+  function fetchText(url, timeoutMs, signal) {
     var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var timedOut = false;
     var timer = setTimeout(function () {
@@ -98,7 +109,9 @@
       if (ctrl) ctrl.abort();
     }, timeoutMs);
 
-    var req = fetch(url, ctrl ? { signal: ctrl.signal } : undefined).then(function (resp) {
+    var combined = ctrl ? linkSignals(ctrl.signal, signal) : null;
+
+    var req = fetch(url, combined ? { signal: combined } : undefined).then(function (resp) {
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.text();
     });
@@ -115,6 +128,7 @@
     }, function (err) {
       clearTimeout(timer);
       if (timedOut) throw new Error('no answer within ' + Math.round(timeoutMs / 1000) + 's');
+      if (signal && signal.aborted) throw new Error('cancelled');
       throw err;
     });
   }
@@ -133,22 +147,20 @@
     return parsed.contents;
   }
 
-  /* Race a set of relays at once. The first body that looks like a feed wins.
-   * A relay that is down, or was handed a web page instead of a feed, simply
-   * loses the race — none of them holds up the others.
+  /* Race a set of relays at once. The first body that looks like a feed wins,
+   * and the losers are aborted immediately — there is no point keeping a
+   * retrying request alive once its answer is on screen.
    *
-   * Transient failures are treated differently. HTTP 429 means "you are asking
-   * too often, come back shortly". HTTP 5xx from allorigins (500, 520, 522)
-   * means the relay's own upstream stumbled — it was seen serving 520 for a
-   * plain example.com while working fine a moment later. Neither is a reason
-   * to give up, so both are retried with a pause. A cold Google News fetch
-   * through allorigins legitimately takes up to about 25 seconds, which is
-   * why its timeout is 26 and not 15.
-   *
-   * Every failure is recorded with its reason, so a failed search can say
-   * what actually went wrong instead of "no relay answered". */
-  function raceRelays(url, relayNames, reasons, notes) {
+   * A relay's error response carries no Access-Control-Allow-Origin header,
+   * so the browser never shows us its status code: a 429, a 500 and a dead
+   * connection all arrive as the same generic "Failed to fetch". That single
+   * message is treated as transient and retried, because it is the common
+   * case and because the status that would have identified a rate limit is
+   * never visible to the browser in the first place. */
+  function raceRelays(url, relayNames, reasons, notes, signal) {
     var relays = relayNames.map(function (n) { return RELAYS[n]; });
+    var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+
     return new Promise(function (resolve) {
       var pending = relays.length;
       var settled = false;
@@ -160,35 +172,34 @@
       function win(text, name) {
         if (settled) return;
         settled = true;
+        if (ctl) { try { ctl.abort(); } catch (e) { /* ignore */ } }
         resolve({ text: text, relay: name });
       }
       function attempt(r, retriesLeft) {
-        fetchText(r.url(url), r.timeout).then(function (txt) {
+        fetchText(r.url(url), r.timeout, ctl ? linkSignals(ctl.signal, signal) : signal).then(function (txt) {
           var body = r.extract(txt);
           if (!/<rss|<feed/i.test(body)) throw new Error('did not return a feed');
           win(body, r.name);
         }).catch(function (err) {
           var msg = (err && err.message) || String(err);
 
-          // A relay's ERROR response carries no Access-Control-Allow-Origin
-          // header, so the browser never shows us its status code — it just
-          // says "Failed to fetch". That single message covers HTTP 429, 500,
-          // 520, 522 and a dead connection alike, and it is the common case.
-          // So a generic fetch failure is treated as transient and retried,
-          // which is the only way a 429 can ever be waited out: the status
-          // that would have told us it was a rate limit is never visible.
-          var rateLimited = /\b429\b/.test(msg);
-          var upstreamError = /\b5\d\d\b/.test(msg);
-          var hiddenStatus = /failed to fetch|networkerror|load failed/i.test(msg);
+          // Cancelled? Then stop. Not "stop when the request fails" — stop
+          // the RETRY CHAIN as well, or an abandoned search keeps firing
+          // requests and keeps competing for the relay.
+          if ((ctl && ctl.signal.aborted) || (signal && signal.aborted) || /cancelled/i.test(msg)) {
+            lose();
+            return;
+          }
 
-          if (retriesLeft > 0 && (rateLimited || upstreamError || hiddenStatus)) {
-            var note = rateLimited
-              ? r.name + ' is rate-limiting us; waiting for it to answer'
-              : r.name + ' is having a moment; trying it again';
+          var tries = (r.retries || 0) - retriesLeft + 1;
+          var total = (r.retries || 0) + 1;
+          if (retriesLeft > 0) {
+            var note = r.name + ' didn\'t answer \u2014 trying again (' + tries + ' of ' + total + ')';
             if (notes.indexOf(note) === -1) notes.push(note);
-            var waits = r.retryWaits || [];
-            var wait = waits.length ? waits[waits.length - 1 - retriesLeft] : (r.retryWait || 8000);
-            setTimeout(function () { attempt(r, retriesLeft - 1); }, wait);
+            setTimeout(function () {
+              if ((ctl && ctl.signal.aborted) || (signal && signal.aborted)) { lose(); return; }
+              attempt(r, retriesLeft - 1);
+            }, r.retryWait || 8000);
             return;
           }
           reasons.push(r.name + ': ' + msg);
@@ -197,13 +208,6 @@
       }
 
       relays.forEach(function (r) { attempt(r, r.retries || 0); });
-    });
-  }
-
-  function fetchFeed(url, relayNames, reasons, notes) {
-    return raceRelays(url, relayNames, reasons, notes).then(function (hit) {
-      if (hit) return hit.text;
-      throw new Error('no relay answered');
     });
   }
 
@@ -217,10 +221,6 @@
     var hl = lang.indexOf('-') >= 0 ? lang : lang + '-' + country;
     return 'https://news.google.com/rss/search?q=' + enc(query) +
       '&hl=' + enc(hl) + '&gl=' + enc(country) + '&ceid=' + enc(r);
-  }
-
-  function bingUrl(query) {
-    return 'https://www.bing.com/news/search?q=' + enc(query) + '&format=RSS';
   }
 
   /* ---------------- parsing ---------------- */
@@ -264,24 +264,11 @@
 
   // Google appends the publisher to the headline: "Headline - Publisher". The
   // <source> element already carries the publisher, so the suffix is dropped
-  // for display. It stays in the raw title, which is what gets matched.
+  // for display.
   function stripPublisher(title) {
     return String(title || '')
       .replace(/\s+[-\u2013\u2014]\s+[^\u2013\u2014-]+$/, '')
       .trim();
-  }
-
-  function matchKey(title) {
-    return stripPublisher(title).toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 70);
-  }
-
-  // Bing wraps each link in apiclick.aspx, but the publisher's own URL sits
-  // URL-encoded in the `url` parameter. No server round-trip needed.
-  function unwrapBing(link) {
-    try {
-      var m = link.match(/[?&]url=([^&]+)/);
-      return m ? decodeURIComponent(m[1]) : '';
-    } catch (e) { return ''; }
   }
 
   function googleItem(it) {
@@ -293,76 +280,6 @@
       domain: hostOf(it.sourceUrl),
       direct: false
     };
-  }
-
-  function bingItem(it) {
-    var real = unwrapBing(it.link);
-    return {
-      title: it.title,
-      link: real || it.link,
-      published: it.published,
-      source: it.source || hostOf(real),
-      domain: hostOf(real),
-      direct: true
-    };
-  }
-
-  /* ---------------- merge ---------------- */
-
-  function merge(googleItems, bingItems) {
-    var g = googleItems || [];
-    var b = bingItems || [];
-
-    var byKey = {};
-    b.forEach(function (item) {
-      var k = matchKey(item.title);
-      if (k) byKey[k] = item;
-    });
-
-    var seen = {};
-    var out = [];
-
-    g.forEach(function (item) {
-      var k = matchKey(item.title);
-      if (!k || seen[k]) return;
-      seen[k] = true;
-      var twin = byKey[k];
-      if (twin && twin.link) {
-        // Bing carries the same headline and links straight to the publisher.
-        out.push({
-          title: twin.title || item.title,
-          link: twin.link,
-          published: twin.published || item.published,
-          source: twin.source || item.source,
-          domain: twin.domain || item.domain,
-          direct: true
-        });
-      } else {
-        out.push({
-          title: item.title, link: item.link, published: item.published,
-          source: item.source, domain: item.domain, direct: false
-        });
-      }
-    });
-
-    b.forEach(function (item) {
-      var k = matchKey(item.title);
-      if (!k || seen[k]) return;
-      seen[k] = true;
-      out.push({
-        title: item.title, link: item.link, published: item.published,
-        source: item.source, domain: item.domain, direct: true
-      });
-    });
-
-    out.sort(function (a, c) {
-      var ta = a.published ? Date.parse(a.published) : 0;
-      var tc = c.published ? Date.parse(c.published) : 0;
-      if (ta === tc) return 0;
-      return tc - ta;
-    });
-
-    return out;
   }
 
   /* ---------------- the Worker, if one is deployed ---------------- */
@@ -390,13 +307,14 @@
 
   function workerItem(it) {
     var url = it.url || it.link || '';
+    var isGoogle = /news\.google\.com/.test(url);
     return {
-      title: it.title || '',
+      title: it.via === 'google' ? stripPublisher(it.title || '') : (it.title || ''),
       link: url,
       published: it.published || null,
       source: it.source || hostOf(url),
       domain: it.domain || hostOf(url),
-      direct: !/news\.google\.com/.test(url)
+      direct: !isGoogle
     };
   }
 
@@ -408,78 +326,55 @@
     }).then(function (j) {
       var items = (j.items || []).map(workerItem);
       if (onUpdate) onUpdate({ source: 'worker', items: items, pending: [], errors: [], notes: [] });
-      return { items: items, errors: [] };
+      return { items: items, errors: [], notes: [], timedOut: false };
     });
   }
 
   /* ---------------- search ---------------- */
 
-  /* search() resolves to { items: [...], errors: [{source, message}], notes: [...] }.
+  /* search() resolves to { items, errors: [{source, message}], notes: [], timedOut }.
    *
-   * onUpdate fires as each feed lands, with the merged list so far — so the
-   * first answer can be put on screen without waiting for the second. */
-  function search(query, region, onUpdate) {
-    var g = { items: null, error: null };
-    var b = { items: null, error: null };
-    var errors = [];
+   * onUpdate fires as the feed lands, with the items so far. `signal` cancels
+   * the search: the requests are aborted, not merely ignored. */
+  function search(query, region, onUpdate, signal) {
+    var reasons = [];
     var notes = [];
-
-    function pending() {
-      var p = [];
-      if (!g.items && !g.error) p.push('google');
-      if (!b.items && !b.error) p.push('bing');
-      return p;
-    }
+    var items = null;
 
     function report(source) {
       if (!onUpdate) return;
-      onUpdate({
-        source: source,
-        items: merge(g.items, b.items),
-        pending: pending(),
-        errors: errors.slice(),
-        notes: notes.slice()
-      });
+      onUpdate({ source: source, items: items || [], pending: [], errors: [], notes: notes.slice() });
     }
 
-    var gReasons = [];
-    var bReasons = [];
-
-    var pg = fetchFeed(googleUrl(query, region), FEED_RELAYS.google, gReasons, notes)
-      .then(function (xml) {
-        g.items = parseRss(xml).map(googleItem);
+    var pg = raceRelays(googleUrl(query, region), FEED_RELAYS, reasons, notes, signal)
+      .then(function (hit) {
+        if (!hit) throw new Error('no relay answered');
+        items = parseRss(hit.text).map(googleItem);
         report('google');
       }, function (err) {
-        g.error = err;
-        errors.push({ source: 'google', message: gReasons.join('; ') || (err.message || String(err)) });
-        report('google');
+        if (signal && signal.aborted) throw err;
+        var errors = [{ source: 'google', message: reasons.join('; ') || (err.message || String(err)) }];
+        if (onUpdate) onUpdate({ source: 'google', items: [], pending: [], errors: errors, notes: notes.slice() });
+        return { errors: errors };
       });
 
-    var pb = fetchFeed(bingUrl(query), FEED_RELAYS.bing, bReasons, notes)
-      .then(function (xml) {
-        b.items = parseRss(xml).map(bingItem);
-        report('bing');
-      }, function (err) {
-        b.error = err;
-        errors.push({ source: 'bing', message: bReasons.join('; ') || (err.message || String(err)) });
-        report('bing');
-      });
-
-    var done = Promise.all([pg, pb]).then(function () {
-      return { items: merge(g.items, b.items), errors: errors, notes: notes, timedOut: false };
+    var done = pg.then(function (extra) {
+      var errors = (extra && extra.errors) || [];
+      return { items: items || [], errors: errors, notes: notes, timedOut: false };
     });
 
-    // A hard ceiling, so a bad afternoon at the relay cannot hang the page
-    // for ever. Whatever has arrived by then is what gets shown.
+    // A hard ceiling, and this one actually aborts the requests rather than
+    // just stopping the interface from waiting.
     var deadline = new Promise(function (resolve) {
       setTimeout(function () {
+        if (signal) { try { signal.abort(); } catch (e) { /* ignore */ } }
         resolve({
-          items: merge(g.items, b.items),
-          errors: errors.length ? errors : [{ source: 'feed', message: 'gave up waiting after 100 seconds' }],
+          items: items || [],
+          errors: [{ source: 'google', message: reasons.join('; ') || 'gave up waiting after ' + (SEARCH_DEADLINE / 1000) + ' seconds' }],
           notes: notes,
           timedOut: true
         });
-      }, 100000);
+      }, SEARCH_DEADLINE);
     });
 
     return Promise.race([done, deadline]);
@@ -487,21 +382,25 @@
 
   /* The public entry point. A Worker on the same origin wins if there is one;
    * otherwise the relays do the work. */
-  function run(query, region, onUpdate) {
+  function run(query, region, onUpdate, signal) {
     return detectWorker().then(function (hasWorker) {
       if (hasWorker) {
         return workerSearch(query, region, onUpdate).catch(function (err) {
-          return { items: [], errors: [{ source: 'worker', message: err.message || String(err) }], notes: [] };
+          return {
+            items: [],
+            errors: [{ source: 'worker', message: err.message || String(err) }],
+            notes: [],
+            timedOut: false
+          };
         });
       }
-      return search(query, region, onUpdate);
+      return search(query, region, onUpdate, signal);
     });
   }
 
   global.Api = {
     search: run,
-    merge: merge,
     googleUrl: googleUrl,
-    bingUrl: bingUrl
+    stripPublisher: stripPublisher
   };
 })(window);

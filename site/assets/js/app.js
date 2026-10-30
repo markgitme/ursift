@@ -8,7 +8,11 @@
  *
  *   answered, no match — the feed came back and nothing matched the query
  *   could not reach    — the feed never answered
- */
+ *
+ * A search is also a generation. Starting a new one cancels the one before
+ * it — the requests are aborted, not merely ignored — so a late answer can
+ * never land on top of a newer search, and the abandoned search stops
+ * competing for the relay. */
 (function () {
   'use strict';
 
@@ -18,6 +22,8 @@
   var resultsEl = document.getElementById('results');
 
   var timer = null;
+  var runId = 0;
+  var current = null;   // { id, controller }
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -46,10 +52,6 @@
     if (isNaN(d.getTime())) return '';
     var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-  }
-
-  function feedLabel(source) {
-    return source === 'google' ? 'Google News' : 'Bing News';
   }
 
   function render(items) {
@@ -81,13 +83,9 @@
     });
     resultsEl.appendChild(list);
 
-    var direct = items.filter(function (i) { return i.direct; }).length;
     var note = el('p', 'results__note');
     note.textContent = items.length + (items.length === 1 ? ' result' : ' results') +
-      (direct
-        ? ' \u00b7 ' + direct + ' open straight on the publisher, ' +
-          (items.length - direct) + ' via Google News'
-        : ' \u00b7 all via Google News');
+      ' \u00b7 links open through Google News';
     resultsEl.appendChild(note);
   }
 
@@ -100,7 +98,8 @@
     return details;
   }
 
-  function showError(errors, query) {
+  function showError(errors, query, myId) {
+    if (myId !== runId) return;
     clear(resultsEl);
     var panel = el('div', 'panel panel--err');
     panel.appendChild(el('h2', 'panel__title', 'Could not reach the news feeds.'));
@@ -119,7 +118,8 @@
     resultsEl.appendChild(panel);
   }
 
-  function showEmpty() {
+  function showEmpty(myId) {
+    if (myId !== runId) return;
     clear(resultsEl);
     var panel = el('div', 'panel panel--quiet');
     panel.appendChild(el('h2', 'panel__title', 'Nothing matched.'));
@@ -129,16 +129,17 @@
     resultsEl.appendChild(panel);
   }
 
-  function showPartial(errors) {
-    var names = errors.map(function (e) { return feedLabel(e.source); }).join(' and ');
-    var note = el('p', 'results__note results__note--warn',
-      names + ' did not answer \u2014 these results came from the other feed.');
-    resultsEl.appendChild(note);
-    resultsEl.appendChild(techBlock(errors));
-  }
-
   function run(query) {
+    // Cancel whatever was still running. Its requests are aborted, so it stops
+    // competing for the relay as well as stop painting over this search.
+    if (current) { try { current.controller.abort(); } catch (e) { /* ignore */ } }
     if (timer) { clearInterval(timer); timer = null; }
+
+    runId += 1;
+    var myId = runId;
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    current = controller ? { id: myId, controller: controller } : null;
+
     clear(resultsEl);
     setStatus('Sifting\u2026', 'status__wait');
 
@@ -151,36 +152,39 @@
     }, 200);
 
     Api.search(query, null, function (u) {
-      // The first feed to answer gets the screen; the second merges into it.
+      // A newer search has taken over. Anything this one produces is stale.
+      if (myId !== runId) return;
       if (u.items && u.items.length) {
         arrived = true;
         render(u.items);
       }
-      // A relay that is rate-limiting us says so, rather than leaving the
-      // reader watching a spinner that means nothing.
       if (u.notes && u.notes.length) {
-        setStatus(u.notes[0], 'status__wait');
-      } else if (arrived && u.pending && u.pending.length) {
-        setStatus('One feed answered, still waiting on the other\u2026', 'status__wait');
+        setStatus(u.notes[u.notes.length - 1], 'status__wait');
       } else if (arrived) {
         setStatus('', '');
       }
     }).then(function (res) {
+      if (myId !== runId) return;
       if (timer) { clearInterval(timer); timer = null; }
       setStatus('', '');
 
       if (!res.items.length) {
         // A timeout is a failure, not an empty result. Never let the two blur.
-        if (res.errors.length) showError(res.errors, query);
-        else showEmpty();
+        if (res.errors.length) showError(res.errors, query, myId);
+        else showEmpty(myId);
         return;
       }
       render(res.items);
-      if (res.errors.length) showPartial(res.errors);
+      if (res.errors.length && res.errors[0].source !== 'google') {
+        var note = el('p', 'results__note results__note--warn',
+          'One source did not answer \u2014 these results came from the other feed.');
+        resultsEl.appendChild(note);
+      }
     }).catch(function (err) {
+      if (myId !== runId) return;
       if (timer) { clearInterval(timer); timer = null; }
       setStatus('', '');
-      showError([{ source: 'feed', message: (err && err.message) || String(err) }], query);
+      showError([{ source: 'feed', message: (err && err.message) || String(err) }], query, myId);
     });
   }
 

@@ -16,11 +16,16 @@
 
 const GNEWS = 'https://news.google.com/rss/search';
 const BING = 'https://www.bing.com/news/search';
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+// An honest User-Agent. Impersonating Chrome is what we were doing, and it
+// is both dishonest and no better: measured against Google News RSS, a plain
+// curl UA and this one both get the feed, and the honest one got MORE items
+// (100 vs 57) than the Chrome impersonation did.
+const UA = 'Mozilla/5.0 (compatible; ursift/1.0; +https://github.com/markgitme/ursift)';
 
 const RSS_TTL = 60 * 60;            // 1 hour for a raw feed
 const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never changes
-const RESOLVE_LIMIT = 40;            // resolve at most this many per search
+const RESOLVE_LIMIT = 40;
+const state = { lastSuccess: null, lastError: null };            // resolve at most this many per search
 
 /* ------------------------------------------------------------------ cache */
 
@@ -239,7 +244,14 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/health') {
-      return json({ ok: true, ts: new Date().toISOString() });
+      // The last successful fetch, not just "the Worker is up". A stale
+      // badge is worse than no badge.
+      return json({
+        ok: true,
+        ts: new Date().toISOString(),
+        lastSuccess: state.lastSuccess || null,
+        lastError: state.lastError || null
+      });
     }
 
     if (url.pathname === '/api/resolve') {
@@ -264,6 +276,8 @@ export default {
 
       try {
         const { items, cached } = await search({ query, mode, sources, region });
+        state.lastSuccess = new Date().toISOString();
+        state.lastError = null;
 
         // Resolve the visible head of the list to real publisher URLs.
         // Cached per article, so this cost is paid once per story, ever.
@@ -278,12 +292,19 @@ export default {
 
         return json({ query, mode, generatedAt: new Date().toISOString(), cached, items: resolved });
       } catch (e) {
-        return json({ error: String(e && e.message || e), items: [] }, 502);
+        state.lastError = String(e && e.message || e);
+        return json({ error: state.lastError, items: [] }, 502);
       }
     }
 
-    // Everything else is the static site.
-    return fetch(request);
+    // Everything else is the static site, served from the assets binding.
+    // Without the binding there is nothing to fall back to, and calling
+    // fetch(request) here would re-invoke this Worker forever.
+    if (env.ASSETS) return env.ASSETS.fetch(request);
+    return new Response('ursift worker: no ASSETS binding configured', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
   },
 };
 

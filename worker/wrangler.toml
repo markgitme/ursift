@@ -2,13 +2,15 @@ name = "ursift"
 main = "worker.js"
 compatibility_date = "2026-01-01"
 
+# The static site is served from the same deployment as the API. `directory`
+# is resolved relative to THIS file, so ../build is the repo's build folder.
+# Run ./build.sh from the repo root first.
+[assets]
+directory = "../build"
+binding = "ASSETS"
+
 # The Worker serves /api/* and falls through to the static site for everything
-# else. Deploy the static site to Cloudflare Pages (or any static host) and
-# point the Pages custom domain at the same zone, OR serve the static assets
-# from the Worker itself via an assets binding:
+# else, from the assets binding above. One deployment, one URL.
 #
-#   [assets]
-#   directory = "../build"
-#   binding = "ASSETS"
-#
-# then change the final `return fetch(request)` to `return env.ASSETS.fetch(request)`.
+# Deploy from the repo root with:
+#   ./build.sh && npx wrangler deploy --config worker/wrangler.toml
