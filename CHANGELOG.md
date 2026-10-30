@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.4.0 — the rename, and a rebuild down to one bar and one button
+
+The project is now called **ursift**. "Watch" was dropped from the name: it
+is too strongly tied to watching video and reels, and the product is the
+opposite — text only, in a list.
+
+### The name
+Chosen by Mark on 2026-10-30 from a two-word device he proposed: a short
+possessive plus a rare synonym of the filtering verb. The method works — of
+61 names tested against the IANA RDAP servers, 56 were simultaneously free on
+`.com`, `.tools`, `.site` and `.is`, where single common nouns were almost
+universally taken. `urcomb` was the runner-up.
+
+`ursift.com` was free at the time of checking.
+
+### What changed
+- **The watchlist is gone.** v0.4.0 is one long input bar, one button marked
+  **Sift**, and a list of links. The watchlist, the three source modes, the
+  grouping, the period filter, ignore-with-retention and export/import are
+  not in this version.
+- **Nothing is preloaded.** No sample queries, no articles on the screen
+  before you ask, and no network request at all until the button is pressed.
+  The baked snapshot is deleted — with the examples gone it had no content to
+  be a fallback to.
+- **Two feeds instead of one.** Google News RSS is the backbone (84–100
+  items); Bing News RSS is the second opinion, and its links are the
+  publisher's own URL, so a headline both feeds carry opens directly rather
+  than bouncing through Google.
+- **The relay timeout is fixed.** `allorigins` needs up to ~20 s on a cold
+  cache; the old 9 s budget aborted before it could answer, which is why
+  every typed search failed. It is now 25 s.
+- **Three states kept apart**: the feed answered and nothing matched, the
+  feed could not be reached, and (new) one feed answered while the other did
+  not — which says so instead of pretending the list is complete.
+- A failed search says *"Nothing came back, so there is nothing to show. That
+  is not the same as 'no results'"*, and offers **Try again**.
+
 ## v0.3.1 — 2026-10-29
 - **One relay is probed once per run, not once per watch.** If the network is
   down, every watch finds out together and fast, instead of each one burning

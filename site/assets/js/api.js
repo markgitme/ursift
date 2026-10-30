@@ -1,203 +1,178 @@
-/* Watchlab — data layer.
+/* ursift — data layer.
  *
- * Two backends, one output shape. The UI never knows which one it is talking to.
+ * Two feeds, one output shape. The interface never has to know which one
+ * answered.
  *
- *   worker : /api/search?q=…  (same-origin Cloudflare Worker — production).
- *            Server-side fetch, server-side publisher-URL resolution, cached.
+ *   Google News RSS — the backbone. Broad coverage: 84–100 items for most
+ *     queries. Its links point at news.google.com, which bounces a browser
+ *     straight on to the publisher (verified: a Google News item link lands
+ *     on the publisher's own site in under two seconds).
  *
- *   relay  : the static build reached through a public CORS relay. Public
- *            relays are rate-limited per IP and go down constantly, so:
- *              · only ONE relay is tried at a time, never four in parallel
- *              · the last relay that worked is remembered across page loads
- *              · a relay that just failed sits out a cooldown, and that
- *                cooldown is persisted so a page reload cannot undo it
- *            If every relay fails, the bundled snapshot is used as a last-resort
- *            floor — and the UI is told that is what it is looking at.
+ *   Bing News RSS — thin, and sometimes very thin: one item for some queries,
+ *     fourteen for others. It earns its place for two reasons. Its links are
+ *     the publisher's own URL, so a headline it also carries opens directly
+ *     instead of bouncing. And it is a second opinion, so one feed answering
+ *     is enough to show something rather than nothing.
  *
- * Nothing here runs on page load. A fetch only happens when the user asks.
+ * Neither feed sends CORS headers, so a browser cannot read either one
+ * directly. Everything goes through a public relay. allorigins needs up to
+ * about twenty seconds on a cold cache, which is why the timeout below sits
+ * well above that — an earlier version used nine seconds, aborted before the
+ * relay could answer, and every typed search failed.
  *
- * search() resolves to:
- *   { items: [...], fromSnapshot: bool, error: {message, detail} | null }
+ * Nothing here runs on page load. A fetch only happens when the user sifts.
  */
 (function (global) {
   'use strict';
 
-  var WORKER_PATH = '/api/search';
-  var SNAPSHOT_PATH = 'data/snapshot.json';
-  var RELAY_KEY = 'watchlab.relay';
-  var RELAY_FAIL_KEY = 'watchlab.relayfail';
-
-  var MODE_ALL = 'all', MODE_FIRST = 'first', MODE_ONLY = 'only';
-
-  var state = { backend: 'unknown' };
-
-  /* ---------------- small persistence helpers ---------------- */
-
-  function loadJson(key, fallback) {
-    try {
-      var raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (e) { return fallback; }
-  }
-  function saveJson(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* ignore */ }
-  }
-
-  function enc(u) { return encodeURIComponent(u); }
-
-  /* ---------------- relays ---------------- */
-
+  /* Relays, raced rather than tried in sequence.
+   *
+   * All of these are flaky free services, and they fail differently:
+   *
+   *   allorigins /get  — the workhorse. Answers with ACAO even when it is
+   *     failing, which matters: its plain error pages carry NO
+   *     Access-Control-Allow-Origin header at all, so the browser reports
+   *     them as a CORS failure rather than an HTTP error.
+   *   allorigins /raw  — the same service, a different path, and therefore a
+   *     DIFFERENT CACHE KEY. When /raw is cold and 522s, /get is often warm
+   *     and answering. Racing both is cheaper than it sounds: only one of
+   *     them can win, and the loser costs nothing but a request.
+   *   cors.lol         — answers in about a second when it works, and
+   *     rate-limits the rest of the time (HTTP 429).
+   *
+   * Racing them means a dead relay costs nothing while a working one answers.
+   */
   var RELAYS = [
-    { name: 'allorigins', url: function (u) { return 'https://api.allorigins.win/raw?url=' + enc(u); } },
-    { name: 'cors.lol', url: function (u) { return 'https://api.cors.lol/?url=' + enc(u); } },
-    { name: 'codetabs', url: function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + enc(u); } },
-    { name: 'corsfix', url: function (u) { return 'https://proxy.corsfix.com/?' + u; } }
+    { name: 'allorigins.get',
+      url: function (u) { return 'https://api.allorigins.win/get?url=' + enc(u); },
+      extract: jsonContents,
+      timeout: 15000 },
+    { name: 'allorigins.raw',
+      url: function (u) { return 'https://api.allorigins.win/raw?url=' + enc(u); },
+      extract: identity,
+      timeout: 15000 },
+    { name: 'cors.lol',
+      url: function (u) { return 'https://api.cors.lol/?url=' + enc(u); },
+      extract: identity,
+      timeout: 12000 }
   ];
 
-  var RELAY_TIMEOUT = 9000;
-  var RELAY_COOLDOWN = 15 * 60 * 1000;   // 15 minutes — long enough to stop the bans
+  var RELAY_RETRY_DELAY = 2500;
+  var RATE_LIMIT_WAIT = 7000;
 
-  // Persisted, so a page reload cannot reset the punishment.
-  var relayFailUntil = loadJson(RELAY_FAIL_KEY, {});
+  var DEFAULT_REGION = 'PH:en';
 
-  function orderedRelays() {
-    var last = loadJson(RELAY_KEY, null);
-    var list = RELAYS.slice();
-    if (last) {
-      var idx = list.map(function (r) { return r.name; }).indexOf(last);
-      if (idx > 0) { var r = list.splice(idx, 1)[0]; list.unshift(r); }
-    }
-    var now = Date.now();
-    var fresh = list.filter(function (r) { return !(relayFailUntil[r.name] > now); });
-    return fresh.length ? fresh : list;
-  }
-
-  function fetchWithTimeout(url, timeoutMs) {
-    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, timeoutMs || RELAY_TIMEOUT);
-    return fetch(url, ctrl ? { signal: ctrl.signal } : undefined).then(function (resp) {
-      clearTimeout(timer);
-      return resp;
-    }, function (err) {
-      clearTimeout(timer);
-      throw err;
-    });
-  }
-
-  function feedError(detail) {
-    var e = new Error('Could not reach the news feeds');
-    e.userMessage = 'Could not reach the news feeds.';
-    e.detail = detail || '';
-    return e;
-  }
-
-  // One relay is probed once per session, not once per watch. If the network
-  // is down, every watch fails together and fast instead of each one burning
-  // 40 seconds rediscovering that the same dead relay is still dead.
-  var sessionRelay = null;
-  var probeFailedAt = 0;      // when the last probe failed — so the next watch
-  var PROBE_FAILURE_TTL = 60000;  // does not pay for the same discovery again
-
-  function probeRelays() {
-    var attempts = orderedRelays();
-    var deadline = Date.now() + 10000;
-    var i = 0;
-    var tried = [];
-    function next() {
-      if (i >= attempts.length || Date.now() > deadline) {
-        probeFailedAt = Date.now();
-        return Promise.reject(feedError('Tried ' + tried.join(', ') + '.'));
-      }
-      var r = attempts[i++];
-      tried.push(r.name);
-      var budget = Math.max(2500, deadline - Date.now());
-      return fetchWithTimeout(r.url(gnewsUrl('watchlabprobe')), budget).then(function (resp) {
-        if (!resp.ok) throw new Error(r.name + ' returned HTTP ' + resp.status);
-        return resp.text();
-      }).then(function (txt) {
-        if (!/<rss|<feed/i.test(txt)) throw new Error(r.name + ' returned no feed');
-        saveJson(RELAY_KEY, r.name);
-        delete relayFailUntil[r.name];
-        saveJson(RELAY_FAIL_KEY, relayFailUntil);
-        sessionRelay = r.name;
-        return r.name;
-      }).catch(function (err) {
-        relayFailUntil[r.name] = Date.now() + RELAY_COOLDOWN;
-        saveJson(RELAY_FAIL_KEY, relayFailUntil);
-        throw err;
-      }).catch(next);
-    }
-    return next();
-  }
-
-  function ensureRelay() {
-    if (sessionRelay) return Promise.resolve(sessionRelay);
-    // The network was already found to be down moments ago. Do not make every
-    // watch rediscover that on its own.
-    if (probeFailedAt && Date.now() - probeFailedAt < PROBE_FAILURE_TTL) {
-      return Promise.reject(feedError('The relay was unreachable a moment ago.'));
-    }
-    return probeRelays();
-  }
-
-  function relayByName(name) {
-    for (var i = 0; i < RELAYS.length; i++) if (RELAYS[i].name === name) return RELAYS[i];
-    return null;
-  }
-
-  function fetchViaRelay(url) {
-    return ensureRelay().then(function (name) {
-      var r = relayByName(name);
-      return fetchWithTimeout(r.url(url), RELAY_TIMEOUT).then(function (resp) {
-        if (!resp.ok) throw new Error(r.name + ' returned HTTP ' + resp.status);
-        return resp.text();
-      }).then(function (txt) {
-        if (!/<item>|<entry/i.test(txt)) throw new Error(r.name + ' returned no feed');
-        return txt;
-      }).catch(function (err) {
-        // It worked a moment ago and now does not — forget it and let the next
-        // attempt probe again.
-        sessionRelay = null;
-        relayFailUntil[name] = Date.now() + RELAY_COOLDOWN;
-        saveJson(RELAY_FAIL_KEY, relayFailUntil);
-        throw feedError(name + ': ' + ((err && err.message) || err));
-      });
-    });
-  }
-
-  /* ---------------- helpers ---------------- */
-
-  function decode(s) {
-    return String(s || '')
-      .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-      .replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&');
-  }
+  function enc(u) { return encodeURIComponent(u); }
 
   function hostOf(u) {
     try { return new URL(u).hostname.toLowerCase().replace(/^www\./, ''); }
     catch (e) { return ''; }
   }
 
-  function normTitle(t) {
-    return decode(t).toLowerCase().replace(/\s+[-–—]\s+[^-–—]+$/, '').replace(/[^a-z0-9]+/g, '').slice(0, 70);
-  }
+  /* ---------------- fetching ---------------- */
 
-  // true when the item's domain is one of the user's, at any subdomain depth
-  function domainMatches(itemDomain, sources) {
-    var d = String(itemDomain || '').toLowerCase();
-    for (var i = 0; i < (sources || []).length; i++) {
-      var s = String(sources[i] || '').toLowerCase();
-      if (!s) continue;
-      if (d === s || d.endsWith('.' + s) || s.endsWith('.' + d)) return true;
+  function fetchText(url, timeoutMs) {
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timedOut = false;
+    var timer = setTimeout(function () {
+      timedOut = true;
+      if (ctrl) ctrl.abort();
+    }, timeoutMs);
+
+    var req = fetch(url, ctrl ? { signal: ctrl.signal } : undefined).then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.text();
+    });
+
+    if (!ctrl) {
+      req = Promise.race([req, new Promise(function (_, rej) {
+        setTimeout(function () { rej(new Error('timed out')); }, timeoutMs);
+      })]);
     }
-    return false;
+
+    return req.then(function (txt) {
+      clearTimeout(timer);
+      return txt;
+    }, function (err) {
+      clearTimeout(timer);
+      if (timedOut) throw new Error('no answer within ' + Math.round(timeoutMs / 1000) + 's');
+      throw err;
+    });
   }
 
-  // region is a Google News edition id: "US:en", "PH:fil", "MX:es-419".
-  function gnewsUrl(query, region) {
-    var r = region || 'US:en';
+  function identity(txt) { return txt; }
+
+  // allorigins /get wraps the upstream body as {"contents": "<body>", ...}.
+  // The plain error pages are not JSON at all — those are passed through and
+  // caught by the feed check below.
+  function jsonContents(txt) {
+    if (txt.charAt(0) !== '{') return txt;
+    var parsed;
+    try { parsed = JSON.parse(txt); }
+    catch (e) { throw new Error('relay returned truncated JSON'); }
+    if (!parsed || typeof parsed.contents !== 'string') throw new Error('relay returned no content');
+    return parsed.contents;
+  }
+
+  /* Race a set of relays at once. The first body that looks like a feed wins.
+   * A relay that is down, rate-limited, or was handed a web page instead of a
+   * feed simply loses the race — none of them holds up the others.
+   *
+   * One case is treated differently: HTTP 429 means "you are asking too
+   * often, come back shortly", not "this service is broken". Those get one
+   * retry after a pause instead of being dropped, because a rate limit is
+   * the most likely thing to clear on its own. */
+  function raceRelays(url, relays) {
+    return new Promise(function (resolve) {
+      var pending = relays.length;
+      var settled = false;
+
+      function lose() {
+        pending -= 1;
+        if (pending <= 0 && !settled) { settled = true; resolve(null); }
+      }
+      function win(text, name) {
+        if (settled) return;
+        settled = true;
+        resolve({ text: text, relay: name });
+      }
+      function attempt(r, retriesLeft) {
+        fetchText(r.url(url), r.timeout).then(function (txt) {
+          var body = r.extract(txt);
+          if (!/<rss|<feed/i.test(body)) throw new Error(r.name + ' did not return a feed');
+          win(body, r.name);
+        }).catch(function (err) {
+          if (retriesLeft > 0 && /\b429\b/.test(err.message || '')) {
+            setTimeout(function () { attempt(r, retriesLeft - 1); }, RATE_LIMIT_WAIT);
+            return;
+          }
+          lose();
+        });
+      }
+
+      relays.forEach(function (r) { attempt(r, 1); });
+    });
+  }
+
+  function fetchViaRelay(url) {
+    return raceRelays(url, RELAYS).then(function (hit) {
+      if (hit) return hit.text;
+      // All of them were down or rate-limited. Give them a moment and race
+      // the two allorigins paths again — measured over a morning of testing,
+      // roughly a third of searches lose the first round entirely.
+      return new Promise(function (r) { setTimeout(r, RELAY_RETRY_DELAY); })
+        .then(function () { return raceRelays(url, [RELAYS[0], RELAYS[1]]); })
+        .then(function (hit2) {
+          if (hit2) return hit2.text;
+          throw new Error('no relay answered');
+        });
+    });
+  }
+
+  /* ---------------- feed URLs ---------------- */
+
+  function googleUrl(query, region) {
+    var r = region || DEFAULT_REGION;
     var p = r.split(':');
     var country = p[0] || 'US';
     var lang = p[1] || 'en';
@@ -210,27 +185,32 @@
     return 'https://www.bing.com/news/search?q=' + enc(query) + '&format=RSS';
   }
 
-  // Build the site: restriction for "My Sources" modes.
-  function withSources(query, domains) {
-    if (!domains || !domains.length) return query;
-    var clause = domains.map(function (d) { return 'site:' + d; }).join(' OR ');
-    return '(' + clause + ') ' + query;
+  /* ---------------- parsing ---------------- */
+
+  function decode(s) {
+    return String(s || '')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&');
+  }
+
+  function tagText(node, tag) {
+    var e = node.querySelector(tag);
+    return e ? decode(e.textContent) : '';
   }
 
   function parseRss(xml) {
     var doc = new DOMParser().parseFromString(xml, 'text/xml');
-    if (doc.querySelector('parsererror')) throw new Error('Could not parse feed');
+    if (doc.querySelector('parsererror')) throw new Error('could not parse the feed');
     var out = [];
     var nodes = doc.querySelectorAll('item');
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      var q = function (tag) {
-        var e = n.querySelector(tag);
-        return e ? decode(e.textContent) : '';
-      };
-      var title = q('title');
-      var link = (n.querySelector('link') ? n.querySelector('link').textContent : '').trim();
-      var date = q('pubDate');
+      var title = tagText(n, 'title');
+      var linkEl = n.querySelector('link');
+      var link = linkEl ? linkEl.textContent.trim() : '';
+      var date = tagText(n, 'pubDate');
       var srcEl = n.querySelector('source');
       if (!title || !link) continue;
       out.push({
@@ -244,10 +224,21 @@
     return out;
   }
 
-  /* ---------------- Bing: direct publisher URLs ---------------- */
-  // Bing wraps each link in an apiclick.aspx tracker, but the real publisher
-  // URL sits URL-encoded in the `url=` parameter. No server round-trip needed.
+  // Google appends the publisher to the headline: "Headline - Publisher". The
+  // <source> element already carries the publisher, so the suffix is dropped
+  // for display. It stays in the raw title, which is what gets matched.
+  function stripPublisher(title) {
+    return String(title || '')
+      .replace(/\s+[-\u2013\u2014]\s+[^\u2013\u2014-]+$/, '')
+      .trim();
+  }
 
+  function matchKey(title) {
+    return stripPublisher(title).toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 70);
+  }
+
+  // Bing wraps each link in apiclick.aspx, but the publisher's own URL sits
+  // URL-encoded in the `url` parameter. No server round-trip needed.
   function unwrapBing(link) {
     try {
       var m = link.match(/[?&]url=([^&]+)/);
@@ -255,184 +246,152 @@
     } catch (e) { return ''; }
   }
 
-  function toGoogleItem(it) {
-    var isG = it.link.indexOf('news.google.com/rss/articles/') === 0;
+  function googleItem(it) {
     return {
-      title: it.title,
-      url: it.link,
+      title: stripPublisher(it.title),
+      link: it.link,
       published: it.published,
       source: it.source,
-      domain: it.sourceUrl ? hostOf(it.sourceUrl) : '',
-      via: 'google',
-      needsResolve: isG
+      domain: hostOf(it.sourceUrl),
+      direct: false
     };
   }
 
-  function toBingItem(it) {
+  function bingItem(it) {
     var real = unwrapBing(it.link);
     return {
       title: it.title,
-      url: real || it.link,
+      link: real || it.link,
       published: it.published,
       source: it.source || hostOf(real),
       domain: hostOf(real),
-      via: 'bing',
-      needsResolve: !real
+      direct: true
     };
   }
 
   /* ---------------- merge ---------------- */
 
   function merge(googleItems, bingItems) {
-    var byTitle = {};
-    bingItems.forEach(function (b) { byTitle[normTitle(b.title)] = b; });
+    var g = googleItems || [];
+    var b = bingItems || [];
+
+    var byKey = {};
+    b.forEach(function (item) {
+      var k = matchKey(item.title);
+      if (k) byKey[k] = item;
+    });
+
     var seen = {};
     var out = [];
 
-    googleItems.forEach(function (g) {
-      var k = g.url.indexOf('news.google.com') === 0 ? normTitle(g.title) : g.url;
-      if (seen[k]) return;
+    g.forEach(function (item) {
+      var k = matchKey(item.title);
+      if (!k || seen[k]) return;
       seen[k] = true;
-      var b = byTitle[normTitle(g.title)];
-      var useBing = b && b.url && b.url.indexOf('news.google.com') !== 0;
+      var twin = byKey[k];
+      if (twin && twin.link) {
+        // Bing carries the same headline and links straight to the publisher.
+        out.push({
+          title: twin.title || item.title,
+          link: twin.link,
+          published: twin.published || item.published,
+          source: twin.source || item.source,
+          domain: twin.domain || item.domain,
+          direct: true
+        });
+      } else {
+        out.push({
+          title: item.title, link: item.link, published: item.published,
+          source: item.source, domain: item.domain, direct: false
+        });
+      }
+    });
+
+    b.forEach(function (item) {
+      var k = matchKey(item.title);
+      if (!k || seen[k]) return;
+      seen[k] = true;
       out.push({
-        title: g.title,
-        url: useBing ? b.url : g.url,
-        published: g.published || (b && b.published) || null,
-        source: g.source || (b && b.source) || '',
-        domain: (useBing ? b.domain : g.domain) || '',
-        via: 'google',
-        needsResolve: useBing ? false : g.needsResolve
+        title: item.title, link: item.link, published: item.published,
+        source: item.source, domain: item.domain, direct: true
       });
     });
 
-    bingItems.forEach(function (b) {
-      var k = normTitle(b.title);
-      if (seen[k] || seen[b.url]) return;
-      seen[k] = true; seen[b.url] = true;
-      out.push({
-        title: b.title, url: b.url, published: b.published,
-        source: b.source, domain: b.domain, via: 'bing', needsResolve: b.needsResolve
-      });
+    out.sort(function (a, c) {
+      var ta = a.published ? Date.parse(a.published) : 0;
+      var tc = c.published ? Date.parse(c.published) : 0;
+      if (ta === tc) return 0;
+      return tc - ta;
     });
 
     return out;
   }
 
-  function applyMode(items, mode, sources) {
-    if (mode === MODE_ONLY && sources && sources.length) {
-      return items.filter(function (it) {
-        return it.domain && domainMatches(it.domain, sources);
-      });
-    }
-    return items;
-  }
-
-  /* ---------------- snapshot fallback ---------------- */
-
-  var snapshotPromise = null;
-  function loadSnapshot() {
-    if (snapshotPromise) return snapshotPromise;
-    snapshotPromise = fetch(SNAPSHOT_PATH).then(function (r) {
-      if (!r.ok) throw new Error('no snapshot');
-      return r.json();
-    }).catch(function () { return { queries: {}, bakedAt: null }; });
-    return snapshotPromise;
-  }
-
-  function snapshotFor(query) {
-    return loadSnapshot().then(function (snap) {
-      var items = (snap.queries && snap.queries[query]) || [];
-      return {
-        items: items.map(function (i) {
-          return {
-            title: i.title, url: i.url, published: i.published,
-            source: i.source, domain: i.domain, via: 'snapshot', needsResolve: !!i.needsResolve
-          };
-        }),
-        bakedAt: snap.bakedAt || null
-      };
-    });
-  }
-
   /* ---------------- backends ---------------- */
 
-  function workerSearch(query, mode, sources) {
-    var u = WORKER_PATH + '?q=' + enc(query) +
-      '&mode=' + enc(mode) +
-      '&sources=' + enc((sources || []).join(',')) +
-      '&region=' + enc((global.Store && global.Store.state().settings.region) || 'US:en');
-    return fetch(u).then(function (r) {
-      if (!r.ok) throw new Error('worker HTTP ' + r.status);
-      return r.json();
-    }).then(function (j) {
-      state.backend = 'worker';
-      return { items: j.items || [], fromSnapshot: false, error: null };
+  function fetchGoogle(query, region) {
+    return fetchViaRelay(googleUrl(query, region)).then(function (xml) {
+      return parseRss(xml).map(googleItem);
     });
   }
 
-  function relaySearch(query, mode, sources) {
-    var q = (mode === MODE_ALL) ? query : withSources(query, sources);
-    var region = (global.Store && global.Store.state().settings.region) || 'US:en';
+  function fetchBing(query) {
+    return fetchViaRelay(bingUrl(query)).then(function (xml) {
+      return parseRss(xml).map(bingItem);
+    });
+  }
 
-    return fetchViaRelay(gnewsUrl(q, region)).then(function (gxml) {
-      var g = parseRss(gxml).map(toGoogleItem);
-      return fetchViaRelay(bingUrl(query)).then(function (bxml) {
-        return merge(g, parseRss(bxml).map(toBingItem));
-      }).catch(function () {
-        return merge(g, []);
+  /* search() resolves to { items: [...], errors: [{source, message}] }.
+   *
+   * onUpdate fires as each feed lands, with the merged list so far — so the
+   * first answer can be put on screen without waiting for the second. */
+  function search(query, region, onUpdate) {
+    var g = { items: null, error: null };
+    var b = { items: null, error: null };
+    var errors = [];
+
+    function pending() {
+      var p = [];
+      if (!g.items && !g.error) p.push('google');
+      if (!b.items && !b.error) p.push('bing');
+      return p;
+    }
+
+    function report(source) {
+      if (!onUpdate) return;
+      onUpdate({
+        source: source,
+        items: merge(g.items, b.items),
+        pending: pending(),
+        errors: errors.slice()
       });
-    }).then(function (items) {
-      state.backend = 'relay';
-      return { items: applyMode(items, mode, sources), fromSnapshot: false, error: null };
-    });
-  }
+    }
 
-  // The only public entry point. Live first; the bundled copy is the floor.
-  function search(query, mode, sources) {
-    return detectBackend().then(function (hasWorker) {
-      if (hasWorker) return workerSearch(query, mode, sources);
-      state.backend = 'relay';
-      return relaySearch(query, mode, sources).catch(function (err) {
-        return snapshotFor(query).then(function (snap) {
-          if (!snap.items.length) throw err;
-          state.backend = 'copy';
-          return {
-            items: applyMode(snap.items, mode, sources),
-            fromSnapshot: true,
-            bakedAt: snap.bakedAt,
-            error: {
-              message: err.userMessage || 'Could not reach the news feeds.',
-              detail: err.detail || (err && err.message) || ''
-            }
-          };
-        });
-      });
+    var pg = fetchGoogle(query, region).then(function (items) {
+      g.items = items; report('google');
+    }, function (err) {
+      g.error = err;
+      errors.push({ source: 'google', message: err.message || String(err) });
+      report('google');
     });
-  }
 
-  var backendProbe = null;
-  function detectBackend() {
-    if (backendProbe) return backendProbe;
-    var declared = null;
-    var meta = document.querySelector('meta[name="watchlab-backend"]');
-    if (meta) declared = (meta.getAttribute('content') || '').toLowerCase();
-    if (declared === 'worker') { backendProbe = Promise.resolve(true); return backendProbe; }
-    if (declared === 'relay') { backendProbe = Promise.resolve(false); return backendProbe; }
-    backendProbe = fetch(WORKER_PATH + '?q=__probe__&mode=all')
-      .then(function (r) { return r.ok; })
-      .catch(function () { return false; });
-    return backendProbe;
+    var pb = fetchBing(query).then(function (items) {
+      b.items = items; report('bing');
+    }, function (err) {
+      b.error = err;
+      errors.push({ source: 'bing', message: err.message || String(err) });
+      report('bing');
+    });
+
+    return Promise.all([pg, pb]).then(function () {
+      return { items: merge(g.items, b.items), errors: errors };
+    });
   }
 
   global.Api = {
-    MODE_ALL: MODE_ALL, MODE_FIRST: MODE_FIRST, MODE_ONLY: MODE_ONLY,
     search: search,
-    backend: function () { return state.backend; },
-    withSources: withSources,
-    domainMatches: domainMatches,
-    gnewsUrl: gnewsUrl,
-    bingUrl: bingUrl,
-    unwrapBing: unwrapBing
+    merge: merge,
+    googleUrl: googleUrl,
+    bingUrl: bingUrl
   };
 })(window);

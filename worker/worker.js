@@ -1,4 +1,4 @@
-/* Watchlab — production data layer (Cloudflare Worker).
+/* ursift — production data layer (Cloudflare Worker).
  *
  * Why this exists: the browser cannot fetch news.google.com (no CORS headers),
  * and Google hands out opaque links that need a server round-trip to become
@@ -129,7 +129,7 @@ function batchPayload(aid, ts, sg) {
 }
 
 async function resolveGoogleLink(googleUrl) {
-  const key = new Request('https://watchlab.internal/resolved?u=' + encodeURIComponent(googleUrl.split('?')[0]));
+  const key = new Request('https://ursift.internal/resolved?u=' + encodeURIComponent(googleUrl.split('?')[0]));
   const hit = await cacheGet(key);
   if (hit) return (await hit.json()).url || '';
 
@@ -209,7 +209,7 @@ async function search({ query, mode, sources, region }) {
   const siteClause = srcs.length ? '(' + srcs.map(d => `site:${d}`).join(' OR ') + ') ' : '';
   const effective = mode === 'all' ? query : siteClause + query;
 
-  const cacheKey = new Request('https://watchlab.internal/feed?u=' +
+  const cacheKey = new Request('https://ursift.internal/feed?u=' +
     encodeURIComponent(effective) + '&r=' + encodeURIComponent(region || 'US:en'));
   const hit = await cacheGet(cacheKey);
   if (hit) return { items: await hit.json(), cached: true };
