@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.5.6 — three routes to the same feed
+
+Google is slow with Cloudflare's egress addresses. Measured from a single
+colo: a direct fetch answered in 0.13 s with 99 items about half the time,
+and stalled past five seconds the other half. The sandbox reached the same
+feed in 0.29 s every time, so Google was not down and the feed was not broken
+— the edge's own addresses are what Google is slow with.
+
+The Worker now races three routes to the same feed:
+
+- **google** — direct. 0.13 s when it works.
+- **cors.lol** — the feed through a relay, from an address that is not
+  Cloudflare's.
+- **allorigins** — the same, as a third road.
+
+The first route with a real feed wins and the other two are aborted, so
+nothing keeps running once the answer is on screen. The request count **to
+Google** stays at one per search — the other two go to third parties — and the
+request count from the Worker goes from one to three.
+
+The response says which route answered (`route`), and `/api/health` remembers
+the last one, so this is measurable rather than a matter of opinion.
+
+The cache keeps the route too, and the local runtime's cache is cleared before
+the smoke test runs: otherwise a stale entry could answer the first search and
+the test would prove nothing.
+
+
 ## v0.5.5 — the Worker stops shouting, and a link resolves when you reach it
 
 Google started answering Cloudflare's edge with **HTTP 503**. Every search

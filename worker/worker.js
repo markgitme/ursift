@@ -22,11 +22,32 @@ const BING = 'https://www.bing.com/news/search';
 // (100 vs 57) than the Chrome impersonation did.
 const UA = 'Mozilla/5.0 (compatible; ursift/1.0; +https://github.com/markgitme/ursift)';
 
-const CACHE_VERSION = 3;             // bumped on deploys, so a fix takes effect at once
+const CACHE_VERSION = 4;             // bumped on deploys, so a fix takes effect at once
 const RSS_TTL = 60 * 60;            // 1 hour for a raw feed
 const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never changes
 const FEED_TIMEOUT = 5000;          // a feed that has not answered in 5s is not coming
-const state = { lastSuccess: null, lastError: null };            // resolve at most this many per search
+const RELAY_TIMEOUT = 12000;        // a relay is allowed to be slower than Google is
+
+/* Three routes to the same Google News feed.
+ *
+ * Google treats Cloudflare's egress addresses badly. Measured from one colo:
+ * a direct fetch answered in 0.13 s with 99 items half the time, and stalled
+ * past five seconds the other half. The sandbox reached the same feed in
+ * 0.29 s every time, so Google is not down and the feed is not broken — it is
+ * the edge's own addresses that Google is slow with.
+ *
+ * The relays reach the same feed from addresses that are not Cloudflare's, so
+ * they are not affected. Racing all three means the fast route wins when it
+ * works and a working route wins when it does not.
+ *
+ * The cost of the race is two requests to third parties, and still exactly
+ * one request to Google. */
+const FEED_ROUTES = [
+  { name: 'google', timeout: FEED_TIMEOUT, url: (u) => u },
+  { name: 'cors.lol', timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
+  { name: 'allorigins', timeout: RELAY_TIMEOUT, url: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
+];
+const state = { lastSuccess: null, lastError: null, lastRoute: null };            // resolve at most this many per search
 
 /* ------------------------------------------------------------------ cache */
 
@@ -47,6 +68,16 @@ async function cachePut(key, response, ttl) {
 
 /* ------------------------------------------------------------------ fetch */
 
+// One signal that aborts when either of its parents does.
+function linkSignals(a, b) {
+  if (!b) return a;
+  const c = new AbortController();
+  const abort = () => { try { c.abort(); } catch (e) { /* ignore */ } };
+  if (a.aborted) abort(); else a.addEventListener('abort', abort);
+  if (b.aborted) abort(); else b.addEventListener('abort', abort);
+  return c.signal;
+}
+
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -55,6 +86,51 @@ function sleep(ms) {
  * Cloudflare's edge fails roughly one time in twelve, and a failed fetch must
  * never be allowed to look like an empty result. That is this project's
  * founding rule, and the Worker was breaking it by swallowing the error. */
+/* Race every route to the feed. The first one that answers with a real feed
+ * wins and the rest are aborted — nothing keeps running once the answer is
+ * on screen. A route that answers with something that is not a feed has not
+ * answered at all. */
+async function fetchFeedRaced(url) {
+  const ctl = new AbortController();
+  const failures = [];
+
+  const routes = FEED_ROUTES.map((route) =>
+    fetchText(route.url(url), { timeout: route.timeout, signal: ctl.signal })
+      .then((xml) => {
+        if (!/<item>/.test(xml)) {
+          failures.push(route.name + ': no items in the feed');
+          return null;
+        }
+        try { ctl.abort(); } catch (e) { /* ignore */ }
+        return { xml: xml, route: route.name };
+      })
+      .catch((e) => {
+        failures.push(route.name + ': ' + (e.message || String(e)));
+        return null;
+      })
+  );
+
+  const winner = await new Promise((resolve) => {
+    let pending = routes.length;
+    let settled = false;
+    for (const p of routes) {
+      p.then((r) => {
+        if (settled) return;
+        if (r) { settled = true; resolve(r); return; }
+        pending -= 1;
+        if (pending === 0) { settled = true; resolve(null); }
+      });
+    }
+  });
+
+  if (!winner) {
+    const err = new Error('no route answered with a feed — ' + failures.join('; '));
+    err.routeFailures = failures;
+    throw err;
+  }
+  return winner;
+}
+
 async function fetchFeed(url, attempts = 3) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
@@ -82,6 +158,8 @@ async function fetchText(url, opts = {}) {
     }, opts.timeout);
   }
 
+  const combined = opts.signal ? linkSignals(ctrl.signal, opts.signal) : ctrl.signal;
+
   try {
     const res = await fetch(url, {
       method: opts.method || 'GET',
@@ -91,7 +169,7 @@ async function fetchText(url, opts = {}) {
         ...(opts.body ? { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' } : {}),
       },
       body: opts.body,
-      signal: ctrl.signal,
+      signal: combined,
     });
     if (!res.ok) {
       const err = new Error(`HTTP ${res.status} from ${new URL(url).host}`);
@@ -273,10 +351,16 @@ async function search({ query, mode, sources, region }) {
     encodeURIComponent(effective) + '&r=' + encodeURIComponent(region || 'US:en') +
     '&v=' + CACHE_VERSION);
   const hit = await cacheGet(cacheKey);
-  if (hit) return { items: await hit.json(), cached: true };
+  if (hit) {
+    const saved = await hit.json();
+    // Older entries were a bare array. Read both shapes rather than serving
+    // an empty list to a cache written before the route was recorded.
+    if (Array.isArray(saved)) return { items: saved, cached: true, errors: [], route: '' };
+    return { items: saved.items || [], cached: true, errors: [], route: saved.route || '' };
+  }
 
   const [g, b] = await Promise.all([
-    fetchFeed(gnewsUrl(effective, region)).then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e })),
+    fetchFeedRaced(gnewsUrl(effective, region)).then(x => ({ xml: x.xml, route: x.route, err: null }), e => ({ xml: '', route: '', err: e })),
     fetchFeed(`${BING}?q=${encodeURIComponent(query)}&format=RSS`).then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e })),
   ]);
 
@@ -308,13 +392,14 @@ async function search({ query, mode, sources, region }) {
   // A result that came out of a failed fetch is not a result. Caching it would
   // freeze the failure for an hour, which is how one bad minute became an
   // empty search that stayed empty all day.
+  const route = g.route || '';
   if (!feedErrors.length) {
-    await cachePut(cacheKey, new Response(JSON.stringify(filtered), {
+    await cachePut(cacheKey, new Response(JSON.stringify({ items: filtered, route: route }), {
       headers: { 'Content-Type': 'application/json' },
     }), RSS_TTL);
   }
 
-  return { items: filtered, cached: false, errors: feedErrors };
+  return { items: filtered, cached: false, errors: feedErrors, route: route };
 }
 
 /* ------------------------------------------------------------------ route */
@@ -330,7 +415,8 @@ export default {
         ok: true,
         ts: new Date().toISOString(),
         lastSuccess: state.lastSuccess || null,
-        lastError: state.lastError || null
+        lastError: state.lastError || null,
+        lastRoute: state.lastRoute || null
       });
     }
 
@@ -355,9 +441,10 @@ export default {
       if (!query.trim()) return json({ items: [] });
 
       try {
-        const { items, cached, errors } = await search({ query, mode, sources, region });
+        const { items, cached, errors, route } = await search({ query, mode, sources, region });
         state.lastSuccess = new Date().toISOString();
         state.lastError = null;
+        state.lastRoute = route || null;
 
         // The links are NOT resolved here.
         //
@@ -376,6 +463,7 @@ export default {
           cached,
           total: items.length,
           items,
+          route: route || '',
           errors: errors || []
         });
       } catch (e) {

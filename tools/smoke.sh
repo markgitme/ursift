@@ -50,6 +50,10 @@ fi
 
 cd "$ROOT" || exit 1
 
+# The local runtime keeps its cache on disk between runs, so a stale entry
+# could answer the first search and make the test prove nothing. Start clean.
+rm -rf worker/.wrangler/state 2>/dev/null || true
+
 if command -v wrangler >/dev/null 2>&1; then
   WRANGLER="wrangler"
 else
@@ -182,7 +186,22 @@ else
   bad "the search resolved $((google_items - still_google)) link(s) itself"
 fi
 
-# 7. a link resolves on demand, one at a time
+# 7. the answer must say which route served it
+route="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    print(json.load(sys.stdin).get("route") or "")
+except Exception:
+    print("")
+' 2>/dev/null || echo '')"
+case "$route" in
+  google|cors.lol|allorigins)
+    ok "the search came through the '$route' route" ;;
+  *)
+    bad "the search did not report a route (route='$route')" ;;
+esac
+
+# 8. a link resolves on demand, one at a time
 one_url="$(printf '%s' "$body" | python3 -c '
 import sys, json
 try:
