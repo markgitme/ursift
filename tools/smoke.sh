@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# ursift — Worker smoke test.
+#
+# Runs the REAL Worker on the REAL runtime (workerd, via `wrangler dev`) and
+# asks it the questions a visitor would. No Cloudflare account is needed: the
+# local runtime has a real cache, a real fetch, and the real code.
+#
+# This script exists because v0.5.1 shipped a Worker that had never been
+# executed. A helper was called with the wrong number of arguments, so every
+# search threw "Invalid URL: undefined" before it ever reached the feed.
+# `wrangler deploy --dry-run` cannot catch that — it checks that the bundle
+# builds, not that the code runs. The first person to find out was a visitor.
+#
+# Usage:   ./build.sh && ./tools/smoke.sh
+#          PORT=9000 QUERY=bitcoin ./tools/smoke.sh
+
+set -u
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PORT="${PORT:-8787}"
+QUERY="${QUERY:-technology}"
+BASE="http://127.0.0.1:${PORT}"
+LOG="$(mktemp -t ursift-smoke.XXXXXX.log)"
+
+export CI=1
+export WRANGLER_SEND_METRICS=false
+
+fail=0
+ok()  { printf '  \033[32mPASS\033[0m  %s\n' "$1"; }
+bad() { printf '  \033[31mFAIL\033[0m  %s\n' "$1"; fail=1; }
+
+cleanup() {
+  if [ -n "${WRANGLER_PID:-}" ]; then
+    kill "$WRANGLER_PID" 2>/dev/null
+    wait "$WRANGLER_PID" 2>/dev/null
+  fi
+  # workerd is a grandchild. Left alone it keeps the port, and the next run
+  # hangs against a server that no longer answers.
+  pkill -f 'workerd serve' 2>/dev/null
+  sleep 1
+}
+trap cleanup EXIT INT TERM
+
+printf '\nursift smoke test — the real Worker, running locally\n\n'
+
+if [ ! -d "$ROOT/build" ]; then
+  bad "build/ is missing — run ./build.sh first"
+  exit 1
+fi
+
+cd "$ROOT" || exit 1
+
+if command -v wrangler >/dev/null 2>&1; then
+  WRANGLER="wrangler"
+else
+  WRANGLER="npx --yes wrangler@latest"
+fi
+
+$WRANGLER dev \
+  --config worker/wrangler.toml \
+  --port "$PORT" --ip 127.0.0.1 >"$LOG" 2>&1 &
+WRANGLER_PID=$!
+
+# The first run downloads workerd, so this can take a while.
+up=0
+for _ in $(seq 1 90); do
+  # A port already taken by a stale server makes every request hang. Say so
+  # instead of waiting it out.
+  if grep -q 'Address already in use' "$LOG" 2>/dev/null; then
+    bad "port $PORT was taken between the check and the launch - retry"
+    tail -20 "$LOG"
+    exit 1
+  fi
+  if curl -fsS -o /dev/null --max-time 3 "$BASE/" 2>/dev/null; then up=1; break; fi
+  sleep 1
+done
+if [ "$up" -ne 1 ]; then
+  bad "the local Worker never came up"
+  tail -40 "$LOG"
+  exit 1
+fi
+ok "the Worker is up on $BASE"
+
+# 1. the site itself
+code="$(curl -sS -o /tmp/ursift-smoke-index.html -w '%{http_code}' --max-time 15 "$BASE/" 2>/dev/null)"
+if [ "$code" = "200" ] && grep -q '<title>ursift' /tmp/ursift-smoke-index.html; then
+  ok "GET / serves the site"
+else
+  bad "GET / returned HTTP $code"
+fi
+
+# 2. the health endpoint
+health="$(curl -fsS --max-time 15 "$BASE/api/health" 2>/dev/null)"
+if printf '%s' "$health" | grep -q '"ok":true'; then
+  ok "GET /api/health answers"
+else
+  bad "GET /api/health did not answer: ${health:0:160}"
+fi
+
+# 3. the actual search — the one that has to work
+body="$(curl -sS --max-time 60 "$BASE/api/search?q=$(printf '%s' "$QUERY" | sed 's/ /%20/g')&region=US:en" 2>/dev/null)"
+count="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    print(-1); raise SystemExit
+items = d.get("items")
+if not isinstance(items, list):
+    print(-2); raise SystemExit
+if d.get("error"):
+    print(-3); raise SystemExit
+print(len(items))
+' 2>/dev/null || echo -4)"
+
+if [ "$count" -gt 0 ] 2>/dev/null; then
+  ok "GET /api/search?q=$QUERY returned $count items"
+else
+  bad "GET /api/search?q=$QUERY returned no usable items (code=$count)"
+  printf '        body: %s\n' "${body:0:400}"
+fi
+
+# 4. every item has to be a real link with a real title — a count alone can
+#    hide a parser that returns empty shells.
+shells="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    items = json.load(sys.stdin).get("items") or []
+except Exception:
+    print(-1); raise SystemExit
+print(sum(1 for i in items if not (i.get("title") or "").strip() or not (i.get("url") or "").strip()))
+' 2>/dev/null || echo -1)"
+if [ "$shells" = "0" ]; then
+  ok "every item has a title and a url"
+else
+  bad "$shells item(s) had an empty title or url"
+fi
+
+# 5. the second search must come out of the cache and still be correct
+body2="$(curl -sS --max-time 60 "$BASE/api/search?q=$(printf '%s' "$QUERY" | sed 's/ /%20/g')&region=US:en" 2>/dev/null)"
+cached="$(printf '%s' "$body2" | python3 -c '
+import sys, json
+try:
+    print(json.load(sys.stdin).get("cached"))
+except Exception:
+    print("?")
+' 2>/dev/null || echo '?')"
+if [ "$cached" = "True" ]; then
+  ok "the repeat search was served from the cache"
+else
+  bad "the repeat search was not served from the cache (cached=$cached)"
+fi
+
+printf '\n'
+if [ "$fail" -eq 0 ]; then
+  printf '\033[32msmoke test passed\033[0m\n\n'
+  exit 0
+fi
+printf '\033[31msmoke test failed\033[0m\n\n'
+tail -40 "$LOG"
+exit 1

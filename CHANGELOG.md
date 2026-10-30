@@ -1,5 +1,52 @@
 # Changelog
 
+## v0.5.2 — the Worker actually runs
+
+v0.5.1 shipped a Worker that had never been executed. Every search threw
+`Invalid URL: undefined` before it reached a feed, so the live site answered
+502 and nothing else. The cause was one word: `cacheGet` was declared with
+two parameters and called with one, so `caches.default.match()` was handed
+`undefined` and threw.
+
+### The fix
+- `cacheGet(key)` — one parameter, two call sites.
+
+### The Worker path is the primary path now
+The Worker answers a search in about a second and resolves publisher URLs
+server-side, so results point at the publisher's own site. The relays are
+the fallback, not the other way round.
+
+### One broken path no longer takes the site down
+If the Worker does not answer — a network error, a server error, or a
+silence — the relays take over. A Worker that answers with **zero** items is
+a real answer and is never second-guessed, because that would turn "nothing
+matched" into a slow, misleading second opinion.
+
+### The Worker cannot leave the interface spinning
+- The probe and the search each get a budget of their own (10 s and 20 s).
+- A Worker that misses its budget hands over to the relays.
+- The reason is on the record: the technical details name it.
+
+### The abort signal actually arrives
+The interface created an `AbortController` for every search and aborted the
+previous one — but never handed the signal to the data layer, so the
+requests were never really cancelled. The generation guard hid it: stale
+results still could not paint over a newer search. Now the requests are
+genuinely aborted, and the browser test proves it (`net::ERR_ABORTED`).
+
+### The tests that would have caught it
+- **`tools/smoke.sh`** runs the **real** Worker on the **real** runtime
+  (`wrangler dev` -> workerd): real cache, real fetch, real code. It asks
+  the questions a visitor would. No Cloudflare account needed.
+- **`tools/browser-test.py`** drives the interface in a real browser: nothing
+  loads until the visitor asks, the Worker answers, a broken Worker hands
+  over to the relays, a second search cancels the first.
+
+`wrangler deploy --dry-run` checks that the bundle builds. It cannot check
+that the code runs. That gap is why v0.5.1 shipped broken, and why both
+tests now run before every release.
+
+
 ## v0.5.0 / v0.5.1 — one feed, cancellable searches, stop when done
 
 The relay layer is rebuilt around what was actually measured, and the two

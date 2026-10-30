@@ -29,7 +29,7 @@ const state = { lastSuccess: null, lastError: null };            // resolve at m
 
 /* ------------------------------------------------------------------ cache */
 
-async function cacheGet(req, key) {
+async function cacheGet(key) {
   const cache = caches.default;
   const hit = await cache.match(key);
   if (!hit) return null;

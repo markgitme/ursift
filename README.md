@@ -14,7 +14,8 @@ not a feed — just the search, with the links that matter, in text.
 |---|---|
 | **One bar, one button** | Type anything, press **Sift**, get a list of links about it. |
 | **Nothing preloaded** | No sample queries, no articles on the screen before you ask. The page makes no network request until you press the button. |
-| **Two feeds** | Google News RSS for breadth, Bing News RSS for publisher-direct links. Whichever answers first gets the screen; the other merges into it. |
+| **Real publisher links** | Results point at the publisher's own site, not at a Google News wrapper. The Worker resolves them server-side. |
+| **Two paths, one answer** | A Cloudflare Worker on the same origin answers first. If it does not answer at all, the public relays take over. |
 | **Honest states** | *The feed answered but nothing matched* and *could not reach the feeds* are two different messages. A failure never looks like an empty result. |
 | **No account** | Nothing is stored on a server, because there is no server holding anything about you. |
 
@@ -22,35 +23,81 @@ not a feed — just the search, with the links that matter, in text.
 
 ## The data layer
 
-`site/assets/js/api.js` fetches two RSS feeds through a public CORS relay
-(`allorigins`), because neither Google News RSS nor Bing News RSS sends CORS
-headers and a browser cannot read either one directly.
+`worker/worker.js` is the production data layer, and it is deployed. It does
+the three things a browser cannot:
+
+1. **Fetches the feed.** Google News RSS sends no CORS headers, so a browser
+   cannot read it. From Cloudflare's edge it answers in 0.39 s.
+2. **Caches the result** at the edge, so the same query is answered from
+   Cloudflare's cache the second time.
+3. **Resolves publisher URLs.** Google News links point at
+   `news.google.com`, which bounces a browser on to the publisher (verified:
+   a Google News item link lands on the publisher's own site in under two
+   seconds). The Worker resolves them in the background, server-side, where
+   it can afford the extra request — and caches the answer per article.
+
+Bing News RSS is the Worker's second opinion, merged server-side. It is thin
+(1–14 items against Google's 84–100) and sometimes a single item, so it never
+carries the list alone.
+
+### The relay path is the fallback, not the plan
+
+`site/assets/js/api.js` still has the public CORS relay path (`allorigins`,
+`cors.lol`) from before the Worker existed. It runs when there is no Worker
+on the origin, and when the Worker is present but does not answer.
 
 Two facts that cost real time to find, and are easy to break again:
 
-- **`allorigins` needs up to ~20 seconds on a cold cache.** The relay timeout
-  is 25 s for that reason. An earlier version used 9 s and aborted before the
-  relay could answer — every typed search failed, and it looked like the feed
-  was broken rather than the timeout being short.
-- **Google News RSS links point at `news.google.com`**, which bounces a
-  browser straight on to the publisher (verified: a Google News item link
-  lands on the publisher's own site in under two seconds). They are usable.
-  Bing's links are `apiclick.aspx` wrappers with the publisher's own URL in
-  the `url` parameter — unwrapped client-side, no server needed.
+- **`allorigins` needs up to ~25 seconds on a cold cache.** It is retried
+  often and briefly, because it is flaking rather than throttling.
+- **`cors.lol` is rate-limited** to roughly one request every few minutes, so
+  it gets exactly one request per search, waited out patiently.
+- **A relay's error response carries no CORS header**, so the browser never
+  shows its status code: a 429, a 500 and a dead connection all arrive as the
+  same generic "Failed to fetch". Retry on the *absence* of an answer, not on
+  the code.
 
-Bing's coverage is thin and sometimes one item, so it is the second opinion,
-not the backbone. Where Bing carries the same headline as Google, the Bing
-link is used so that result opens directly on the publisher.
+## Deploying
 
-## The Worker (written, not deployed)
+The Worker is connected to GitHub through Cloudflare's git integration, so an
+approved push to `main` is a release.
 
-`worker/worker.js` is the production data layer: server-side fetch, edge
-caching, server-side publisher-URL resolution, and no CORS problem at all. It
-is a separate rung of the build and is deployed with:
+| Setting | Value |
+|---|---|
+| **Build command** | `./build.sh` |
+| **Deploy command** | `npx wrangler deploy --config worker/wrangler.toml` |
+| **Preview command** | `npx wrangler preview --config worker/wrangler.toml` |
+
+The `--config` matters: `worker/wrangler.toml` is not at the repository root,
+and a Wrangler command that finds no configuration falls back to *automatic
+project configuration*, which opens a pull request against the repository.
+
+`wrangler preview` only runs for preview builds — pushes to branches other
+than the production branch. With one branch it never fires; the flag is there
+so that it cannot misfire if preview builds are ever switched on.
+
+## Testing
+
+Two tests, both real, neither needing a Cloudflare account.
 
 ```bash
-cd worker && npx wrangler deploy
+./build.sh && ./tools/smoke.sh      # the Worker, on the real runtime
+python3 tools/browser-test.py       # the interface, in a real browser
 ```
+
+**`tools/smoke.sh`** starts the Worker with `wrangler dev` — which means the
+real `workerd` runtime, the real `caches.default`, the real `fetch` — and
+asks it the questions a visitor would: does the site load, does the health
+endpoint answer, does a search return items with titles and URLs, is the
+second search served from the cache.
+
+**`tools/browser-test.py`** drives the interface in Chromium: nothing is
+fetched until the visitor asks, the Worker answers a search, a broken Worker
+hands over to the relays, and a second search cancels the first.
+
+This exists because v0.5.1 shipped a Worker that had never been executed.
+`wrangler deploy --dry-run` checks that the bundle builds. It cannot check
+that the code runs.
 
 ## Layout
 
@@ -58,9 +105,12 @@ cd worker && npx wrangler deploy
 site/
   index.html
   assets/css/app.css
-  assets/js/api.js      the data layer — two feeds, one output shape
+  assets/js/api.js      the data layer — Worker first, relays as the fallback
   assets/js/app.js      the interface — one bar, one button, one list
-worker/worker.js        Cloudflare Worker data layer (not deployed yet)
+worker/worker.js        Cloudflare Worker data layer (deployed)
+worker/wrangler.toml    the Worker configuration, including the assets binding
+tools/smoke.sh          runs the real Worker and asks it real questions
+tools/browser-test.py   drives the interface in a real browser
 tools/bake_snapshot.py  historic: baked the old snapshot, no longer used
 build.sh                stages site/ -> build/
 ```
@@ -69,7 +119,7 @@ build.sh                stages site/ -> build/
 
 ```bash
 ./build.sh                      # stage into ./build
-zip -r ../output/ursift-vX.Y.Z-$(date +%F).zip build
+zip -r ../output/ursift-vX.Y.Z-$(date +%F).zip site worker README.md CHANGELOG.md build.sh
 ```
 
 ## Rules this project keeps
@@ -78,5 +128,7 @@ zip -r ../output/ursift-vX.Y.Z-$(date +%F).zip build
   most important rule in this interface.
 - **Never fire a burst of requests on page load.** Free relays throttle per
   IP and then the site blames the network.
+- **A piece that ships must have been executed.** Not bundled, not dry-run —
+  *run*. The first version of the Worker was deployed without ever being run.
 - **The snapshot is a fallback, never a default** — and as of v0.4.0 there is
   no snapshot at all.

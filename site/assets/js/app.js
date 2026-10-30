@@ -163,7 +163,7 @@
       } else if (arrived) {
         setStatus('', '');
       }
-    }).then(function (res) {
+    }, controller ? controller.signal : null).then(function (res) {
       if (myId !== runId) return;
       if (timer) { clearInterval(timer); timer = null; }
       setStatus('', '');
@@ -175,10 +175,16 @@
         return;
       }
       render(res.items);
-      if (res.errors.length && res.errors[0].source !== 'google') {
-        var note = el('p', 'results__note results__note--warn',
-          'One source did not answer \u2014 these results came from the other feed.');
-        resultsEl.appendChild(note);
+      if (res.errors.length) {
+        if (res.errors[0].source !== 'google') {
+          var note = el('p', 'results__note results__note--warn',
+            res.errors[0].source === 'worker'
+              ? 'The Worker did not answer \u2014 these results came through the relay instead.'
+              : 'One source did not answer \u2014 these results came from the other feed.');
+          resultsEl.appendChild(note);
+        }
+        // The reason is one click away, never further than that.
+        resultsEl.appendChild(techBlock(res.errors));
       }
     }).catch(function (err) {
       if (myId !== runId) return;

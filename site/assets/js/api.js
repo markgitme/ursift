@@ -77,6 +77,13 @@
   var WORKER_PATH = '/api/search';
   var SEARCH_DEADLINE = 45000;
 
+  // The Worker normally answers in about a second, but it is allowed to be
+  // slow — a cold start plus a cache miss can take a few. It is not allowed to
+  // be silent: a Worker that never answers must not leave the interface
+  // spinning, so it gets a budget of its own and then hands over to the relays.
+  var WORKER_TIMEOUT = 20000;
+  var WORKER_PROBE_TIMEOUT = 10000;
+
   function enc(u) { return encodeURIComponent(u); }
 
   function hostOf(u) {
@@ -298,14 +305,14 @@
     // without going near a feed. A static host, meanwhile, answers the unknown
     // path /api/search with index.html and a 200 — so "the request succeeded"
     // proves nothing. Only a JSON body carrying an items array counts.
-    workerProbe = fetch(WORKER_PATH + '?q=')
-      .then(function (r) {
-        if (!r.ok) return false;
-        return r.text().then(function (txt) {
-          var j;
-          try { j = JSON.parse(txt); } catch (e) { return false; }
-          return !!(j && Array.isArray(j.items));
-        });
+    //
+    // The probe gets a budget of its own. If the Worker is slow enough to
+    // miss it, the relays answer instead of the visitor watching a spinner.
+    workerProbe = fetchText(WORKER_PATH + '?q=', WORKER_PROBE_TIMEOUT)
+      .then(function (txt) {
+        var j;
+        try { j = JSON.parse(txt); } catch (e) { return false; }
+        return !!(j && Array.isArray(j.items));
       })
       .catch(function () { return false; });
     return workerProbe;
@@ -324,11 +331,17 @@
     };
   }
 
-  function workerSearch(query, region, onUpdate) {
+  function workerSearch(query, region, onUpdate, signal) {
     var u = WORKER_PATH + '?q=' + enc(query) + '&region=' + enc(region || DEFAULT_REGION);
-    return fetch(u).then(function (r) {
-      if (!r.ok) throw new Error('worker HTTP ' + r.status);
-      return r.json();
+    return fetchText(u, WORKER_TIMEOUT, signal).then(function (txt) {
+      var j;
+      try { j = JSON.parse(txt); }
+      catch (e) { throw new Error('worker returned an unreadable body'); }
+      return j;
+    }, function (err) {
+      // One wording for every way the Worker can fail to answer, so the
+      // interface can say what happened instead of guessing.
+      throw new Error('worker ' + (err.message || String(err)));
     }).then(function (j) {
       var items = (j.items || []).map(workerItem);
       if (onUpdate) onUpdate({ source: 'worker', items: items, pending: [], errors: [], notes: [] });
@@ -387,20 +400,44 @@
   }
 
   /* The public entry point. A Worker on the same origin wins if there is one;
-   * otherwise the relays do the work. */
+   * otherwise the relays do the work.
+   *
+   * If the Worker does not answer AT ALL — a network error, a server error, or
+   * a silence — the relays take over, because one broken path should not take
+   * the site down. A Worker that answers with zero items is a real answer and
+   * is never second-guessed: that would turn "nothing matched" into a slow,
+   * misleading second opinion. */
   function run(query, region, onUpdate, signal) {
     return detectWorker().then(function (hasWorker) {
-      if (hasWorker) {
-        return workerSearch(query, region, onUpdate).catch(function (err) {
-          return {
+      if (!hasWorker) return search(query, region, onUpdate, signal);
+
+      return workerSearch(query, region, onUpdate, signal).catch(function (err) {
+        // Cancelled, not failed. A newer search took over — there is nothing
+        // to fall back to and nobody left to answer.
+        if (signal && signal.aborted) throw err;
+
+        // The Worker is not answering. Let the next search probe it again.
+        workerProbe = null;
+
+        var why = err.message || String(err);
+        if (onUpdate) {
+          onUpdate({
+            source: 'worker',
             items: [],
-            errors: [{ source: 'worker', message: err.message || String(err) }],
-            notes: [],
-            timedOut: false
-          };
+            pending: [],
+            errors: [],
+            notes: ['The Worker did not answer (' + why + ') — trying the relay path.']
+          });
+        }
+
+        return search(query, region, onUpdate, signal).then(function (res) {
+          // The Worker failure stays on the record even when the relays
+          // answered — the answer came from somewhere else, and saying so is
+          // the whole point.
+          res.errors = [{ source: 'worker', message: why }].concat(res.errors || []);
+          return res;
         });
-      }
-      return search(query, region, onUpdate, signal);
+      });
     });
   }
 
