@@ -169,9 +169,19 @@
           win(body, r.name);
         }).catch(function (err) {
           var msg = (err && err.message) || String(err);
+
+          // A relay's ERROR response carries no Access-Control-Allow-Origin
+          // header, so the browser never shows us its status code — it just
+          // says "Failed to fetch". That single message covers HTTP 429, 500,
+          // 520, 522 and a dead connection alike, and it is the common case.
+          // So a generic fetch failure is treated as transient and retried,
+          // which is the only way a 429 can ever be waited out: the status
+          // that would have told us it was a rate limit is never visible.
           var rateLimited = /\b429\b/.test(msg);
           var upstreamError = /\b5\d\d\b/.test(msg);
-          if (retriesLeft > 0 && (rateLimited || upstreamError)) {
+          var hiddenStatus = /failed to fetch|networkerror|load failed/i.test(msg);
+
+          if (retriesLeft > 0 && (rateLimited || upstreamError || hiddenStatus)) {
             var note = rateLimited
               ? r.name + ' is rate-limiting us; waiting for it to answer'
               : r.name + ' is having a moment; trying it again';
