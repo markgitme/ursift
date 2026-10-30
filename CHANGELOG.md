@@ -1,5 +1,55 @@
 # Changelog
 
+## v0.5.0 / v0.5.1 — one feed, cancellable searches, stop when done
+
+The relay layer is rebuilt around what was actually measured, and the two
+structural problems are fixed.
+
+### Searches cancel each other
+A search is now a **generation**. Starting a new one aborts the previous
+one's requests, and a stale answer can never paint over a newer search.
+Previously a late arrival replaced your results with the **previous query's**
+results, and an abandoned search's error panel appeared minutes later over a
+search you had already moved on from.
+
+### Nothing runs in the background once the list is on screen
+- The losing relays are **aborted** the moment one answers.
+- The retry chain stops when a search is cancelled, instead of firing its
+  remaining attempts at a relay nobody is waiting for any more.
+- The hard deadline **aborts the requests**, rather than only stopping the
+  interface from waiting.
+
+### Bing is dropped from the browser path
+It cost two of the five requests a search used to fire, brought its own
+failure states, and merged only 1–14 items against Google's 84–100. Its real
+value — publisher URLs that need no Google hop — is done by the Worker, which
+resolves them server-side where a browser cannot.
+
+### The timeouts are reshaped
+`allorigins` is flaking rather than throttling, so it is retried often and
+briefly: 12 s per attempt, 3–4.5 s apart, up to six attempts, bounded by the
+search deadline. `cors.lol` is rate-limited, so it gets **exactly one request
+per search**, waited out patiently. A search that used to take 57 s should
+now take 10–15 s.
+
+**v0.5.1** — a relay that fails *fast* (a 522 returns in a moment rather than
+hanging) was burning its whole attempt budget in a few seconds and giving up
+while there was still time left. Retries are now bounded by the deadline as
+well as by an attempt count.
+
+### The copy is honest
+A relay's error response carries no CORS header, so the browser hides its
+status code and every failure looks the same. The note now says **which relay
+did not answer and how many attempts are left**, instead of guessing.
+
+### The Worker is ready to be the real answer
+- Its User-Agent is now honest rather than a Chrome impersonation. Measured
+  against Google News RSS: the honest UA got **100 items** where the Chrome
+  impersonation got 57.
+- It serves the static site from an **assets binding**, so one deployment is
+  the whole site — API and pages on one URL.
+- `/api/health` reports the **last successful fetch**, not just "up".
+
 ## v0.4.1 — the relay layer, rebuilt after it failed in the field
 
 v0.4.0 shipped and then failed every search for Mark, while the same searches
