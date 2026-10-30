@@ -83,9 +83,26 @@
     });
     resultsEl.appendChild(list);
 
+    // Be exact about the links. The Worker resolves the head of the list to
+    // the publisher's own URL; the rest still go through Google News. Saying
+    // "through Google News" on every result set would be a small lie, and
+    // saying "directly on the publisher" would be a bigger one.
+    var viaGoogle = items.filter(function (it) {
+      return /news\.google\.com/.test(it.link || '');
+    }).length;
+    var tail;
+    if (viaGoogle === 0) {
+      tail = 'links open directly on the publisher';
+    } else if (viaGoogle === items.length) {
+      tail = 'links open through Google News';
+    } else {
+      tail = 'the top ' + (items.length - viaGoogle) +
+        ' open on the publisher, the rest through Google News';
+    }
+
     var note = el('p', 'results__note');
     note.textContent = items.length + (items.length === 1 ? ' result' : ' results') +
-      ' \u00b7 links open through Google News';
+      ' \u00b7 ' + tail;
     resultsEl.appendChild(note);
   }
 

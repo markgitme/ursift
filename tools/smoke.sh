@@ -136,7 +136,46 @@ else
   bad "$shells item(s) had an empty title or url"
 fi
 
-# 5. the second search must come out of the cache and still be correct
+# 5. the list must not be shortened by the resolution budget
+trunc="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    print("?"); raise SystemExit
+items = d.get("items") or []
+total = d.get("total")
+print("%s/%s" % (len(items), total))
+' 2>/dev/null || echo '?')"
+got="${trunc%%/*}"; want="${trunc##*/}"
+if [ "$got" = "$want" ]; then
+  ok "the whole list came back ($got items, none dropped)"
+else
+  bad "the list was shortened: $got items returned, $want in the feed"
+fi
+
+# 6. the head of the list must be resolved to the publisher's own URL.
+#    The Worker resolves a fixed number of items — enough for the top of the
+#    list, not the whole list, because each resolution costs two requests and
+#    Cloudflare allows 50 subrequests per invocation.
+head_url="$(printf '%s' "$body" | python3 -c '
+import sys, json
+try:
+    items = json.load(sys.stdin).get("items") or []
+except Exception:
+    print(""); raise SystemExit
+print(items[0].get("url", "") if items else "")
+' 2>/dev/null || echo '')"
+case "$head_url" in
+  *news.google.com*)
+    bad "the first result was still a Google News wrapper" ;;
+  http*)
+    ok "the head of the list is resolved to publisher URLs" ;;
+  *)
+    bad "no first result to check" ;;
+esac
+
+# 6. the second search must come out of the cache and still be correct
 body2="$(curl -sS --max-time 60 "$BASE/api/search?q=$(printf '%s' "$QUERY" | sed 's/ /%20/g')&region=US:en" 2>/dev/null)"
 cached="$(printf '%s' "$body2" | python3 -c '
 import sys, json

@@ -24,7 +24,12 @@ const UA = 'Mozilla/5.0 (compatible; ursift/1.0; +https://github.com/markgitme/u
 
 const RSS_TTL = 60 * 60;            // 1 hour for a raw feed
 const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never changes
-const RESOLVE_LIMIT = 40;
+// Resolving one article costs two requests (the article page, then the
+// batchexecute call). Cloudflare allows 50 subrequests per invocation, so a
+// 40-item head meant 82 requests: the limit was hit, every resolution failed,
+// and all 40 links came back as Google wrappers. 12 items costs 26 — and the
+// ones past it still work, they just go through Google News.
+const RESOLVE_LIMIT = 12;
 const state = { lastSuccess: null, lastError: null };            // resolve at most this many per search
 
 /* ------------------------------------------------------------------ cache */
@@ -45,6 +50,27 @@ async function cachePut(key, response, ttl) {
 }
 
 /* ------------------------------------------------------------------ fetch */
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/* One feed, fetched with a few patient retries. A feed that fails once from
+ * Cloudflare's edge fails roughly one time in twelve, and a failed fetch must
+ * never be allowed to look like an empty result. That is this project's
+ * founding rule, and the Worker was breaking it by swallowing the error. */
+async function fetchFeed(url, attempts = 3) {
+  let last = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetchText(url);
+    } catch (e) {
+      last = e;
+      if (i < attempts - 1) await sleep(500 * (i + 1));
+    }
+  }
+  throw last;
+}
 
 async function fetchText(url, opts = {}) {
   const res = await fetch(url, {
@@ -219,22 +245,38 @@ async function search({ query, mode, sources, region }) {
   const hit = await cacheGet(cacheKey);
   if (hit) return { items: await hit.json(), cached: true };
 
-  const [gxml, bxml] = await Promise.all([
-    fetchText(gnewsUrl(effective, region)).catch(() => ''),
-    fetchText(`${BING}?q=${encodeURIComponent(query)}&format=RSS`).catch(() => ''),
+  const [g, b] = await Promise.all([
+    fetchFeed(gnewsUrl(effective, region)).then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e })),
+    fetchFeed(`${BING}?q=${encodeURIComponent(query)}&format=RSS`).then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e })),
   ]);
 
-  const items = merge(parseFeed(gxml, 'google'), parseFeed(bxml, 'bing'));
+  const feedErrors = [];
+  if (g.err) feedErrors.push('google: ' + (g.err.message || String(g.err)));
+  if (b.err) feedErrors.push('bing: ' + (b.err.message || String(b.err)));
+
+  // Both feeds failed: the question was never answered. Saying so lets the
+  // interface fall back to the relays, instead of telling the visitor that
+  // nothing matched a query that was never sent anywhere.
+  if (g.err && b.err) {
+    throw new Error('both feeds failed — ' + feedErrors.join('; '));
+  }
+
+  const items = merge(parseFeed(g.xml, 'google'), parseFeed(b.xml, 'bing'));
 
   const filtered = mode === 'only' && srcs.length
     ? items.filter(it => it.domain && srcs.includes(it.domain))
     : items;
 
-  await cachePut(cacheKey, new Response(JSON.stringify(filtered), {
-    headers: { 'Content-Type': 'application/json' },
-  }), RSS_TTL);
+  // A result that came out of a failed fetch is not a result. Caching it would
+  // freeze the failure for an hour, which is how one bad minute became an
+  // empty search that stayed empty all day.
+  if (!feedErrors.length) {
+    await cachePut(cacheKey, new Response(JSON.stringify(filtered), {
+      headers: { 'Content-Type': 'application/json' },
+    }), RSS_TTL);
+  }
 
-  return { items: filtered, cached: false };
+  return { items: filtered, cached: false, errors: feedErrors };
 }
 
 /* ------------------------------------------------------------------ route */
@@ -275,22 +317,33 @@ export default {
       if (!query.trim()) return json({ items: [] });
 
       try {
-        const { items, cached } = await search({ query, mode, sources, region });
+        const { items, cached, errors } = await search({ query, mode, sources, region });
         state.lastSuccess = new Date().toISOString();
         state.lastError = null;
 
         // Resolve the visible head of the list to real publisher URLs.
         // Cached per article, so this cost is paid once per story, ever.
+        // The rest of the list is kept as it is: a Google News link still
+        // works, and dropping it would quietly shorten every result set to
+        // the size of the resolution budget.
         const head = items.slice(0, RESOLVE_LIMIT);
-        const resolved = await Promise.all(head.map(async (it) => {
+        const resolvedHead = await Promise.all(head.map(async (it) => {
           if (!it.needsResolve) return it;
           try {
             const real = await resolveGoogleLink(it.url);
             return real ? { ...it, url: real, needsResolve: false } : it;
           } catch { return it; }
         }));
+        const resolved = resolvedHead.concat(items.slice(RESOLVE_LIMIT));
 
-        return json({ query, mode, generatedAt: new Date().toISOString(), cached, items: resolved });
+        return json({
+          query, mode,
+          generatedAt: new Date().toISOString(),
+          cached,
+          total: items.length,
+          items: resolved,
+          errors: errors || []
+        });
       } catch (e) {
         state.lastError = String(e && e.message || e);
         return json({ error: state.lastError, items: [] }, 502);

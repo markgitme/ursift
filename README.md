@@ -36,6 +36,11 @@ the three things a browser cannot:
    seconds). The Worker resolves them in the background, server-side, where
    it can afford the extra request — and caches the answer per article.
 
+   Only the **top 12** are resolved. Each resolution costs two requests and
+   Cloudflare allows 50 subrequests per invocation, so resolving a 40-item
+   head meant 80 requests: the limit was hit and every link came back
+   unresolved. The rest of the list keeps its Google News link, which works.
+
 Bing News RSS is the Worker's second opinion, merged server-side. It is thin
 (1–14 items against Google's 84–100) and sometimes a single item, so it never
 carries the list alone.

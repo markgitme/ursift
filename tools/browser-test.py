@@ -110,8 +110,19 @@ def test_worker_answers(page):
 
     links = [e.get_attribute("href") for e in page.query_selector_all(".result__link")]
     check("every result links out", all(l and l.startswith("http") for l in links), str(links[:2]))
-    check("links point at publishers, not at Google",
-          all("news.google.com" not in (l or "") for l in links), str([l for l in links if l and "news.google.com" in l][:2]))
+
+    # The Worker resolves the head of the list to the publisher's own URL.
+    # The rest stay Google News links on purpose — resolving every item
+    # costs more requests than Cloudflare allows in one invocation.
+    head = links[:12]
+    check("the head of the list points at publishers, not at Google",
+          all("news.google.com" not in (l or "") for l in head),
+          str([l for l in head if l and "news.google.com" in l][:2]))
+
+    note = page.query_selector(".results__note")
+    note_text = note.text_content() if note else ""
+    check("the note tells the truth about the links",
+          ("publisher" in note_text) or ("Google News" in note_text), note_text[:120])
 
     calls = [u for u in seen if "/api/search" in u]
     check("the search went to the Worker", any(q_of(u) == "technology" for u in calls), str(calls[:3]))

@@ -1,5 +1,52 @@
 # Changelog
 
+## v0.5.3 — a failed feed is no longer allowed to look like an empty result
+
+v0.5.2 made the Worker run. It ran, and the live site started answering — but
+three things about it were wrong, all of them found by looking at what the
+deployed Worker actually returned rather than at what it was supposed to
+return.
+
+### The Worker was swallowing feed failures
+`fetchText(...).catch(() => '')` turned a failed fetch into an empty feed, and
+the empty feed was then **cached for an hour**. A query that failed once
+stayed empty for the rest of that hour — which is exactly the thing this
+project's first rule forbids: *a failed fetch must never look like an empty
+result.* The Worker was breaking the rule the whole site is built around.
+
+- The feed is fetched with up to three attempts, spaced 500 ms and 1 s.
+- If **both** feeds fail, the Worker answers 502 rather than an empty list,
+  and the interface falls back to the relays.
+- If **one** feed fails, the other's items are shown and the failure is
+  reported.
+- A result that came out of a failed fetch is **not cached**.
+
+### The resolution budget was blowing the subrequest limit
+Resolving one article costs two requests, and the head of the list was 40
+articles — 80 requests against a limit of 50 per invocation. The limit was
+hit, every resolution failed, and all 40 links came back as Google wrappers.
+Measured on the live Worker: 10 items resolved perfectly, 40 items resolved
+to nothing.
+
+- The head is now 12 articles (26 requests).
+- The rest of the list keeps its Google News link, which works.
+
+### The list was being cut short
+The route returned only the resolved head, so the site showed 12 results out
+of 97. The whole list is returned now, and the response carries `total` so
+the tests can catch it if it ever happens again.
+
+### The note tells the truth
+"links open through Google News" was printed under every result set, including
+the ones whose links went straight to the publisher. The note now says which
+is which.
+
+### The tests caught all three
+The smoke test found the truncation (12 items instead of 97). The browser
+test found the link assertion was wrong. Both were written before the fix,
+which is the point: a test that never fails is not a test.
+
+
 ## v0.5.2 — the Worker actually runs
 
 v0.5.1 shipped a Worker that had never been executed. Every search threw

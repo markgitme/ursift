@@ -344,8 +344,14 @@
       throw new Error('worker ' + (err.message || String(err)));
     }).then(function (j) {
       var items = (j.items || []).map(workerItem);
-      if (onUpdate) onUpdate({ source: 'worker', items: items, pending: [], errors: [], notes: [] });
-      return { items: items, errors: [], notes: [], timedOut: false };
+      // A feed that failed inside the Worker is still a failure, and it is
+      // still the Worker's to own. The results that did come through stay on
+      // screen; the failure stays on the record.
+      var errs = (j.errors || []).map(function (m) {
+        return { source: 'feed', message: m };
+      });
+      if (onUpdate) onUpdate({ source: 'worker', items: items, pending: [], errors: errs, notes: [] });
+      return { items: items, errors: errs, notes: [], timedOut: false };
     });
   }
 
