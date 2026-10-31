@@ -54,6 +54,32 @@
     return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
   }
 
+  /* What to say when the answer came from somewhere other than the main feed.
+   *
+   * The old wording — "one source did not answer" — was true and useless: it
+   * did not say that the list was short, or which feed it came from, so a
+   * visitor could not tell a thin answer from a full one. */
+  function copyFor(res) {
+    var n = res.items.length;
+    var from = res.from || '';
+    var errs = res.errors || [];
+    var feedFailed = errs.some(function (e) { return e.source === 'feed'; });
+    var relayFailed = errs.some(function (e) { return e.source === 'relay'; });
+
+    if (from === 'relay') {
+      return 'The Worker did not answer \u2014 these results came through the relay instead.';
+    }
+    if (feedFailed) {
+      return 'Google did not answer \u2014 these ' + n +
+        (n === 1 ? ' result is' : ' results are') +
+        ' from the second feed, so there are fewer of them.';
+    }
+    if (relayFailed) {
+      return 'The relay path did not answer \u2014 these results came from the Worker.';
+    }
+    return 'One source did not answer \u2014 these results came from the other feed.';
+  }
+
   function render(items) {
     clear(resultsEl);
     if (!items || !items.length) return;
@@ -193,13 +219,8 @@
       }
       render(res.items);
       if (res.errors.length) {
-        if (res.errors[0].source !== 'google') {
-          var note = el('p', 'results__note results__note--warn',
-            res.errors[0].source === 'worker'
-              ? 'The Worker did not answer \u2014 these results came through the relay instead.'
-              : 'One source did not answer \u2014 these results came from the other feed.');
-          resultsEl.appendChild(note);
-        }
+        var note = el('p', 'results__note results__note--warn', copyFor(res));
+        resultsEl.appendChild(note);
         // The reason is one click away, never further than that.
         resultsEl.appendChild(techBlock(res.errors));
       }

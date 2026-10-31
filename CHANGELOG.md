@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.6.2 — both paths at once, and the copy that tells the truth
+
+### The browser asks the relays immediately
+The Worker is the fast path when Google lets it through — 0.13 seconds and a
+hundred items — and the relays are the reliable one, because they reach Google
+from the visitor's own address rather than from Cloudflare's shared pool. The
+interface now asks **both at once** instead of waiting for the Worker to give
+up before it asks the relays.
+
+That is the difference between the simple version that worked and a
+two-second wait for a failure. And a thin answer does not stop the other
+path: if the Worker comes back with four items from the second feed, the
+relay path is still asked, because a fuller list is on its way.
+
+### The Worker stops waiting for Bing once Google has answered
+The two feeds were fetched together and the response waited for both, even
+after Google had answered. The second feed is the slower of the two and only
+ever a second opinion, so it is now stopped the moment the first one lands.
+Worst case, that was nine seconds of holding a response for nothing.
+
+### The copy says what actually happened
+*"One source did not answer — these results came from the other feed"* was
+true and useless: it did not say that the list was short, or which feed it
+came from, so a visitor could not tell a thin answer from a full one. Now:
+
+- *"Google did not answer — these 4 results are from the second feed, so there
+  are fewer of them."*
+- *"The Worker did not answer — these results came through the relay instead."*
+- *"The relay path did not answer — these results came from the Worker."*
+
+### A bug the new test caught
+The race helper returned `undefined` when it was called a second time, and
+that reached the interface as "no result at all" — the whole search silently
+became an error panel. It is the kind of bug that only a test written
+against the new behaviour can find.
+
+
 ## v0.6.0 — what the simple version knew that we had forgotten
 
 The version that worked before was simple: a page that asked

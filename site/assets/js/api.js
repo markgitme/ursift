@@ -405,61 +405,125 @@
     return Promise.race([done, deadline]);
   }
 
-  /* The public entry point. A Worker on the same origin wins if there is one;
-   * otherwise the relays do the work.
+  /* How many items make a list an answer rather than a fallback. The second
+   * feed alone gives 4-12 items; the main feed gives 60-100. */
+  var THIN = 15;
+
+  /* One controller that also follows the search's own signal, so a cancelled
+   * search stops both paths. */
+  function linked(signal) {
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    if (!ctrl) return { signal: signal || null, abort: function () { /* ignore */ } };
+    if (signal) {
+      if (signal.aborted) { try { ctrl.abort(); } catch (e) { /* ignore */ } }
+      else signal.addEventListener('abort', function () { try { ctrl.abort(); } catch (e) { /* ignore */ } });
+    }
+    return {
+      signal: ctrl.signal,
+      abort: function () { try { ctrl.abort(); } catch (e) { /* ignore */ } }
+    };
+  }
+
+  /* Both paths start at once.
    *
-   * If the Worker does not answer AT ALL — a network error, a server error, or
-   * a silence — the relays take over, because one broken path should not take
-   * the site down. A Worker that answers with zero items is a real answer and
-   * is never second-guessed: that would turn "nothing matched" into a slow,
-   * misleading second opinion. */
+   * The Worker is the fast one when Google lets it through: 0.13 seconds and
+   * a hundred items. It is also the one that shares Cloudflare's addresses
+   * with the whole internet, which is why Google's rate limiter sometimes
+   * shuts it out.
+   *
+   * The relays ask from the visitor's own address, which nobody else shares,
+   * so they are the reliable one — and the simple version of this site that
+   * worked before was exactly that, asked from the browser.
+   *
+   * So: ask both at once. The first answer is on screen immediately. A thin
+   * answer — the second feed alone — does not stop the other path, because a
+   * fuller list is still on its way. */
+  function racePaths(query, region, onUpdate, signal) {
+    var w = linked(signal);
+    var r = linked(signal);
+    var workerOut = null;
+    var relayOut = null;
+    var settled = false;
+    var result = null;
+
+    function stopWorker() { try { w.abort(); } catch (e) { /* ignore */ } }
+    function stopRelay() { try { r.abort(); } catch (e) { /* ignore */ } }
+
+    function finish() {
+      // Every call returns the same answer. An early return of undefined here
+      // reaches the interface as "no result at all".
+      if (settled) return result;
+      settled = true;
+      stopWorker();
+      stopRelay();
+
+      var wRes = workerOut && workerOut.ok ? workerOut.res : null;
+      var rRes = relayOut && relayOut.ok ? relayOut.res : null;
+      var best = null;
+      var from = '';
+      if (wRes && rRes) {
+        if (rRes.items.length > wRes.items.length) { best = rRes; from = 'relay'; }
+        else { best = wRes; from = 'worker'; }
+      } else if (wRes) { best = wRes; from = 'worker'; }
+      else if (rRes) { best = rRes; from = 'relay'; }
+
+      var errors = [];
+      if (workerOut && workerOut.err) errors.push(workerOut.err);
+      if (relayOut && relayOut.err) errors.push(relayOut.err);
+
+      if (!best) {
+        result = {
+          items: [],
+          errors: errors.length ? errors : [{ source: 'feed', message: 'nothing answered' }],
+          notes: [],
+          timedOut: false,
+          from: ''
+        };
+        return result;
+      }
+      best.errors = errors.concat(best.errors || []);
+      best.from = from;
+      result = best;
+      return result;
+    }
+
+    var workerP = workerSearch(query, region, onUpdate, w.signal).then(function (res) {
+      workerOut = { ok: true, res: res };
+      // A full list settles it. A thin one does not: the other path may
+      // still be holding a better answer.
+      if (res.items.length >= THIN || relayOut) return finish();
+      return null;
+    }, function (err) {
+      workerOut = { ok: false, err: { source: 'worker', message: err.message || String(err) } };
+      // Cancelled, not failed — a newer search took over.
+      if (signal && signal.aborted) return null;
+      // The Worker is not answering. Let the next search probe it again.
+      workerProbe = null;
+      if (relayOut) return finish();
+      return null;
+    });
+
+    var relayP = search(query, region, onUpdate, r.signal).then(function (res) {
+      relayOut = { ok: true, res: res };
+      if (res.items.length || workerOut) return finish();
+      return null;
+    }, function (err) {
+      relayOut = { ok: false, err: { source: 'relay', message: err.message || String(err) } };
+      if (workerOut) return finish();
+      return null;
+    });
+
+    return Promise.all([workerP, relayP]).then(function () { return finish(); });
+  }
+
+  /* The public entry point. A Worker on the same origin is used if there is
+   * one, and the relays are asked at the same time, because the two have
+   * different strengths: the Worker is fast when Google lets it through, and
+   * the relays reach Google from an address nobody else shares. */
   function run(query, region, onUpdate, signal) {
     return detectWorker().then(function (hasWorker) {
       if (!hasWorker) return search(query, region, onUpdate, signal);
-
-      return workerSearch(query, region, onUpdate, signal).then(function (res) {
-        // The Worker answered, but it could not reach the main feed, so what
-        // it has is the thin second-opinion feed. The relays reach Google
-        // from the visitor's own address — a different address from the
-        // edge's — so ask them as well and take their answer when it is the
-        // better one. The thin list stays on screen meanwhile.
-        if (res.errors.length && res.items.length) {
-          return search(query, region, onUpdate, signal).then(function (relay) {
-            if (relay.items && relay.items.length > res.items.length) {
-              relay.errors = (relay.errors || []).concat(res.errors);
-              return relay;
-            }
-            return res;
-          }, function () { return res; });
-        }
-        return res;
-      }).catch(function (err) {
-        // Cancelled, not failed. A newer search took over — there is nothing
-        // to fall back to and nobody left to answer.
-        if (signal && signal.aborted) throw err;
-
-        // The Worker is not answering. Let the next search probe it again.
-        workerProbe = null;
-
-        var why = err.message || String(err);
-        if (onUpdate) {
-          onUpdate({
-            source: 'worker',
-            items: [],
-            pending: [],
-            errors: [],
-            notes: ['The Worker did not answer (' + why + ') — trying the relay path.']
-          });
-        }
-
-        return search(query, region, onUpdate, signal).then(function (res) {
-          // The Worker failure stays on the record even when the relays
-          // answered — the answer came from somewhere else, and saying so is
-          // the whole point.
-          res.errors = [{ source: 'worker', message: why }].concat(res.errors || []);
-          return res;
-        });
-      });
+      return racePaths(query, region, onUpdate, signal);
     });
   }
 

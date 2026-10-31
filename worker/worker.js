@@ -176,11 +176,12 @@ async function fetchFeedRaced(url) {
   return winner;
 }
 
-async function fetchFeed(url, attempts = 3) {
+async function fetchFeed(url, opts = {}) {
+  const attempts = opts.attempts || 3;
   let last = null;
   for (let i = 0; i < attempts; i++) {
     try {
-      return await fetchText(url, { timeout: FEED_TIMEOUT });
+      return await fetchText(url, { timeout: FEED_TIMEOUT, signal: opts.signal });
     } catch (e) {
       last = e;
       // A 4xx is the feed saying no: retrying it only spends the visitor's
@@ -371,10 +372,24 @@ async function search({ query, mode, sources, region }) {
     return { items: saved.items || [], cached: true, errors: [], route: saved.route || '', started: saved.started || [] };
   }
 
-  const [g, b] = await Promise.all([
-    fetchFeedRaced(gnewsUrl(effective, region)).then(x => ({ xml: x.xml, route: x.route, started: x.started, err: null }), e => ({ xml: '', route: '', started: [], err: e })),
-    fetchFeed(`${BING}?q=${encodeURIComponent(query)}&format=RSS`).then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e })),
-  ]);
+  // The two feeds are fetched together, but the second one is stopped the
+  // moment the first answers. It is the slower of the two and its items are
+  // only a second opinion, so waiting for it after Google has already
+  // answered would hold the whole response for nothing.
+  const bingCtrl = new AbortController();
+  const googleP = fetchFeedRaced(gnewsUrl(effective, region)).then((x) => {
+    try { bingCtrl.abort(); } catch (e) { /* ignore */ }
+    return { xml: x.xml, route: x.route, started: x.started, err: null };
+  }, (e) => ({ xml: '', route: '', started: [], err: e }));
+
+  const bingP = fetchFeed(`${BING}?q=${encodeURIComponent(query)}&format=RSS`, { signal: bingCtrl.signal })
+    .then(x => ({ xml: x, err: null }), e => ({ xml: '', err: e }));
+
+  const g = await googleP;
+  const b = await bingP;
+  // If Google answered, the second feed was stopped on purpose, so its
+  // failure is not a failure worth reporting.
+  if (!g.err && b.err) b.err = null;
 
   const feedErrors = [];
   if (g.err) feedErrors.push('google: ' + (g.err.message || String(g.err)));

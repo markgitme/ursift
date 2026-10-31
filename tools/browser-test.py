@@ -187,13 +187,46 @@ def test_worker_failure_falls_back(page):
     # closed <details>, so they are not rendered and inner_text() returns ''.
     tech = page.query_selector(".tech pre")
     body = tech.text_content() if tech else ""
-    check("the Worker failure is on the record", "worker" in body.lower(), body[:200] or "no technical details")
+    check("the Worker failure is on the record", "worker" in body.lower(), repr(body[:300]) or "no technical details")
 
     panel = page.query_selector(".panel--err")
     note = page.query_selector(".results__note--warn")
     check("the interface says which path answered",
           (panel is not None) or (note is not None),
           "panel" if panel else ("note: " + (note.inner_text() if note else "none")))
+    page.unroute("**/*")
+    page.remove_listener("request", on_req)
+
+
+def test_relays_do_not_wait(page):
+    """The relay path must start at once, not after the Worker gives up.
+
+    The Worker is fast when Google lets it through and unreliable when it
+    does not; the relays ask from the visitor's own address. Asking both at
+    the same time is the difference between the old simple version's speed
+    and a two-second wait for a failure.
+    """
+    relay_calls = []
+
+    def on_req(r):
+        if "allorigins" in r.url or "cors.lol" in r.url:
+            relay_calls.append(r.url[:70])
+
+    def handler(route):
+        url = route.request.url
+        # The probe still answers, so the Worker is detected. The search
+        # itself never does.
+        if "/api/search" in url and not url.split("?")[1].split("&")[0].endswith("q="):
+            return
+        route.continue_()
+
+    page.on("request", on_req)
+    page.route("**/*", handler)
+    page.fill("#sift-input", "noreplytest")
+    page.click("button[type=submit]")
+    page.wait_for_timeout(8000)
+    check("the relays start without waiting for the Worker",
+          len(relay_calls) > 0, str(relay_calls[:1]))
     page.unroute("**/*")
     page.remove_listener("request", on_req)
 
@@ -241,7 +274,8 @@ def main():
         run_test(page, "1. nothing loads until the visitor asks", test_nothing_loads)
         run_test(page, "2. the Worker answers a search", test_worker_answers)
         run_test(page, "3. a broken Worker hands over to the relays", test_worker_failure_falls_back)
-        run_test(page, "4. a second search cancels the first", test_second_search_wins)
+        run_test(page, "4. the relays do not wait for the Worker", test_relays_do_not_wait)
+        run_test(page, "5. a second search cancels the first", test_second_search_wins)
 
         browser.close()
 
