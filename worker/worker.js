@@ -54,25 +54,32 @@ const RESOLVE_TIMEOUT = 2500;        // resolving one article is a nice-to-have,
 const FEED_STAGGER = 400;
 
 const FEED_ROUTES = [
-  { name: 'cors.lol', delay: 0, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
+  { name: 'google', delay: 0, timeout: FEED_TIMEOUT, url: (u) => u },
+  { name: 'cors.lol', delay: FEED_STAGGER, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
   { name: 'allorigins', delay: FEED_STAGGER, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
 ];
 
-/* There is deliberately no direct route to Google.
+/* Three routes, because Google rate-limits by IP address and every Worker on
+ * the internet shares one pool of egress addresses. Google's limiter treats
+ * that pool as one extremely busy customer, and it lets the edge through
+ * intermittently rather than not at all.
  *
- * It was there first, and it never worked from the edge. Measured from a real
- * Cloudflare colo, the same feed with four different User-Agents: the honest
- * one hung at eight seconds, a full Chrome string 503'd at five seconds,
- * `Cloudflare-Workers` 503'd at seven and a half, and `curl/8.0` hung at
- * eight. All four failed — so it is not the User-Agent. It is the address:
- * Google rate-limits by IP, every Worker on the internet shares one pool of
- * egress addresses, and Google's limiter treats that pool as one extremely
- * busy customer.
+ * The direct route is the fast one when it works — 0.13 s and a hundred
+ * items — and it fails with a 429 or an empty body when it does not. It is
+ * kept because it is one request, and because it has answered many times
+ * from the edge. An earlier note here said it "never worked"; that was
+ * wrong, and the measurement behind it was taken while the whole pool was
+ * shut out.
  *
  * The relays reach the same feed from addresses that are not Cloudflare's,
- * which is why they answer and the direct route never did. This is the same
- * shape as the simple version that worked before: fetch Google through a
- * relay, from an address that is not a shared cloud one. */
+ * and they have their own rate limits — which are also per address, so the
+ * Worker's budget there is shared with every other Worker on the internet.
+ *
+ * The visitor's own address is the one with a budget nobody else shares,
+ * which is why the interface asks the relays too, from the browser, when the
+ * Worker's answer is thin. That is the shape of the simple version that
+ * worked before this one: fetch Google through a relay, from an address that
+ * is not a shared cloud one. */
 
 const state = { lastSuccess: null, lastError: null, lastRoute: null };            // resolve at most this many per search
 

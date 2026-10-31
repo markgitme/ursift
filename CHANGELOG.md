@@ -8,23 +8,30 @@ items. It was never broken. Two things in it were right, and we had stopped
 copying them.
 
 **One: it never fetched Google directly.** It fetched Google *through a
-relay*. That is the whole trick. Google's rate limiter works on IP addresses,
-every Cloudflare Worker shares one pool of egress addresses, and Google's
-limiter treats that pool as one extremely busy customer — so a Worker that
-asks Google for itself gets 429s and empty responses. A relay asks from an
-address that is not Cloudflare's, and Google answers it. The direct route was
-measured from a real colo with four different User-Agents: the honest one
-hung at eight seconds, a full Chrome string 503'd at five, `Cloudflare-Workers`
-503'd at seven and a half, `curl/8.0` hung at eight. All four failed, so it
-was never the User-Agent — it was the address.
+relay*, from the visitor's own address. Google's rate limiter works on IP
+addresses, every Cloudflare Worker shares one pool of egress addresses, and
+Google's limiter treats that pool as one extremely busy customer — so a
+Worker that asks Google for itself gets 429s and empty responses *when the
+limiter is in a bad mood*, and a perfect answer when it is not. A relay asks
+from an address that is not Cloudflare's, and a visitor's browser asks from
+an address nobody else has.
+
+Measured from a real colo with four different User-Agents, the honest one
+hung at eight seconds, a full Chrome string 503'd at five,
+`Cloudflare-Workers` 503'd at seven and a half, and `curl/8.0` hung at eight
+— all four failed, so it was never the User-Agent. It was the address, and
+the mood of the limiter.
 
 **Two: it asked for one URL, over and over.** A relay caches by URL, so the
 same request comes back warm and instant. Every new query is a cold fetch:
 slower, and the first one to a busy relay can fail outright.
 
 ### What changed
-- **The direct route to Google is gone.** It never worked from the edge, and
-  it spent a request on every single search to a server that would not answer.
+- **The direct route to Google is back.** v0.6.0 removed it on the evidence
+  of a run in which the whole pool was shut out — and that was wrong. It has
+  answered from the edge many times, in 0.13 s with a hundred items. It is
+  intermittent, not dead: Google's limiter lets the pool through sometimes.
+  It costs one request, so it stays.
 - **Resolving a link to the publisher is gone.** It needed Google's article
   page and a `batchexecute` call, both fetched straight from the edge — so it
   never worked either, and every link a visitor reached cost a request for
