@@ -31,6 +31,7 @@ const RESOLVE_TTL = 60 * 60 * 24 * 30; // 30 days — a publisher URL never chan
 // waits to be asked.
 const FEED_TIMEOUT = 2500;
 const RELAY_TIMEOUT = 6000;
+const RESOLVE_TIMEOUT = 2500;        // resolving one article is a nice-to-have, never a wait
 
 /* Three routes to the same Google News feed.
  *
@@ -114,8 +115,11 @@ async function fetchFeedRaced(url) {
       started.push(route.name);
       fetchText(route.url(url), { timeout: route.timeout, signal: ctl.signal })
         .then((xml) => {
-          if (!/<item>/.test(xml)) {
-            failures.push(route.name + ': no items in the feed');
+          // A valid feed with nothing in it is an ANSWER — a query nobody
+          // has written about yet. Only a body that is not a feed at all
+          // (an error page, a challenge) counts as a route that failed.
+          if (!/<rss[\s>]|<feed[\s>]|<channel[\s>]/i.test(xml)) {
+            failures.push(route.name + ': the response was not a feed');
             resolve(null);
             return;
           }
@@ -291,13 +295,16 @@ async function resolveGoogleLink(googleUrl) {
   if (!idMatch) return '';
   const aid = idMatch[1];
 
-  const html = await fetchText(googleUrl.split('?')[0] + '?oc=5');
+  // Both fetches here get a budget. Google is not reliably reachable from
+  // Cloudflare's edge, and without a timeout a hung fetch hangs the whole
+  // request — and every link a visitor reaches costs one.
+  const html = await fetchText(googleUrl.split('?')[0] + '?oc=5', { timeout: RESOLVE_TIMEOUT });
   const sg = (html.match(/data-n-a-sg="([^"]+)"/) || [])[1];
   const ts = (html.match(/data-n-a-ts="([^"]+)"/) || [])[1];
   if (!sg || !ts) return '';
 
   const body = 'f.req=' + encodeURIComponent(batchPayload(aid, ts, sg));
-  const txt = await fetchText('https://news.google.com/_/DotsSplashUi/data/batchexecute', { method: 'POST', body });
+  const txt = await fetchText('https://news.google.com/_/DotsSplashUi/data/batchexecute', { method: 'POST', body, timeout: RESOLVE_TIMEOUT });
   const m = txt.match(/garturlres\\",\\"(https?:[^\\"]+)/);
   if (!m) return '';
 

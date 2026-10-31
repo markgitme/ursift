@@ -119,6 +119,12 @@ print(len(items))
 
 if [ "$count" -gt 0 ] 2>/dev/null; then
   ok "GET /api/search?q=$QUERY returned $count items"
+elif printf '%s' "$body" | grep -q '429'; then
+  # Google is rate-limiting this address right now. That is the environment
+  # talking, not the Worker: a build must not be failed by it, but it must
+  # not be hidden either.
+  bad "Google is rate-limiting this address right now (429) — the Worker cannot be judged"
+  printf '        body: %s\n' "${body:0:300}"
 else
   bad "GET /api/search?q=$QUERY returned no usable items (code=$count)"
   printf '        body: %s\n' "${body:0:400}"
@@ -209,14 +215,14 @@ try:
 except Exception:
     print("")
 ' 2>/dev/null || echo '')"
-if [ "$route" = "google" ]; then
-  if [ "$started" = "google" ]; then
-    ok "only Google was asked \u2014 no third-party relay was touched"
-  else
-    bad "a relay was used even though Google answered (started=$started)"
-  fi
+# The policy is: the direct route is always tried first, and the two relay
+# routes only start once it has had its stagger. Whether they then start at
+# all depends on how long Google takes, so the stable property to check is
+# the order.
+if [ "${started%%,*}" = "google" ]; then
+  ok "the direct route was tried first (started=$started)"
 else
-  ok "the relay routes were used because the direct route did not answer (started=$started)"
+  bad "the direct route was not tried first (started=$started)"
 fi
 
 # 9. a link resolves on demand, one at a time

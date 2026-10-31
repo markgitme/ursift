@@ -1,5 +1,53 @@
 # Changelog
 
+## v0.5.9 (local, not pushed) — what was actually wrong, and one real bug
+
+**Google rate-limits by IP address, and every Cloudflare Worker shares the
+same pool of egress addresses.** When that pool is warm, Google answers the
+edge with either HTTP 429 or HTTP 200 and a body containing no articles.
+
+Proved from a real edge with a diagnostic Worker, same feed, four
+User-Agents:
+
+| User-Agent | result |
+|---|---|
+| `Mozilla/5.0 (compatible; ursift/1.0)` | hung, aborted at 8 s |
+| a full Chrome string | **HTTP 503** after 5.1 s |
+| `Cloudflare-Workers` | **HTTP 503** after 7.5 s |
+| `curl/8.0` | hung, aborted at 8 s |
+
+**All four fail, so it is not the User-Agent.** And the same feed from the
+same edge through `cors.lol` answered in 1.5 s with 109 items — so the feed is
+fine, and Google's reachability from a shared cloud address is the problem.
+This sandbox's own address now shows the same signature (`200` with zero
+articles) after a day of testing, which is exactly what was happening on the
+edge all along.
+
+### The bug this exposed
+A valid feed with **zero articles in it is an answer** — a query nobody has
+written about yet. The race was treating "no `<item>`s" as "this route
+failed", so such a query came back as a 502 *could not reach the feeds*
+instead of an honest *nothing matched*. That is the mirror of the rule this
+project is built around: **an empty result must never look like a failed
+fetch**, and neither must a failed fetch look like an empty result.
+
+A route now counts as having answered when the body is a feed document —
+`<rss>`, `<feed>` or `<channel>` — not when it contains items.
+
+### The resolve path had no timeout at all
+`/api/resolve` fetched a Google article page and a `batchexecute` call with
+no budget, so a hung Google fetch hung the whole request — and every link a
+visitor reached cost one. Both fetches now have a 2.5-second budget, and the
+browser gives up after 4 seconds.
+
+### The tests were asserting a wish
+The smoke test asserted that no third party was touched when Google
+answered, which is only true when Google answers inside the 400 ms stagger.
+It now asserts the real policy — the direct route is always tried first —
+and a Google 429 is reported as an environmental problem rather than failing
+the build, because a build should not be failed by Google's rate limiter.
+
+
 ## v0.5.8 — a third party is only asked when Google has not answered
 
 The three routes to the feed were started all at once, so **every** search

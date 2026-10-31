@@ -72,10 +72,15 @@
       asked = true;
       var u = a.getAttribute('href') || '';
       if (u.indexOf('https://news.google.com/') !== 0) return;
-      fetch('/api/resolve?u=' + encodeURIComponent(u))
+      // A budget here too: the resolve is a nicety, and a request that never
+      // answers should not sit on a connection.
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) { try { ctrl.abort(); } catch (e) { /* ignore */ } } }, 4000);
+      fetch('/api/resolve?u=' + encodeURIComponent(u), ctrl ? { signal: ctrl.signal } : undefined)
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) { if (j && j.url) a.setAttribute('href', j.url); })
-        .catch(function () { /* the Google News link still works */ });
+        .catch(function () { /* the Google News link still works */ })
+        .then(function () { clearTimeout(timer); });
     }
 
     function onEnter() {
