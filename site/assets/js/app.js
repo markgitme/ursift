@@ -67,7 +67,11 @@
     var relayFailed = errs.some(function (e) { return e.source === 'relay'; });
 
     if (from === 'relay') {
-      return 'The Worker did not answer \u2014 these results came through the relay instead.';
+      // A full list from the relay path is a good answer. No warning needed.
+      if (n >= 15) return '';
+      return feedFailed
+        ? 'Google did not answer from the edge \u2014 these results came through the relay instead.'
+        : 'The Worker did not answer \u2014 these results came through the relay instead.';
     }
     if (feedFailed) {
       return 'Google did not answer \u2014 these ' + n +
@@ -218,12 +222,10 @@
         return;
       }
       render(res.items);
-      if (res.errors.length) {
-        var note = el('p', 'results__note results__note--warn', copyFor(res));
-        resultsEl.appendChild(note);
-        // The reason is one click away, never further than that.
-        resultsEl.appendChild(techBlock(res.errors));
-      }
+      var warn = copyFor(res);
+      if (warn) resultsEl.appendChild(el('p', 'results__note results__note--warn', warn));
+      // The reason is one click away, never further than that.
+      if (res.errors.length) resultsEl.appendChild(techBlock(res.errors));
     }).catch(function (err) {
       if (myId !== runId) return;
       if (timer) { clearInterval(timer); timer = null; }

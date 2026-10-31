@@ -478,6 +478,18 @@ export default {
         state.lastError = null;
         state.lastRoute = route || null;
 
+        // One line per search, so the dashboard log can be read without
+        // guessing: which route answered, how many items it produced, and
+        // what failed if anything did.
+        console.log('ursift search', JSON.stringify({
+          q: query,
+          route: route || null,
+          items: items.length,
+          started: started || [],
+          cached: !!cached,
+          errors: errors || []
+        }));
+
         // The links are NOT resolved here.
         //
         // Resolving one article costs two requests, so resolving a list meant

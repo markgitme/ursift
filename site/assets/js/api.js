@@ -467,9 +467,17 @@
       } else if (wRes) { best = wRes; from = 'worker'; }
       else if (rRes) { best = rRes; from = 'relay'; }
 
+      // Every failure is kept, whichever path won. The Worker's own feed
+      // failure used to be dropped when the relay answered — so the one
+      // thing worth knowing about the search was the one thing that
+      // disappeared.
       var errors = [];
       if (workerOut && workerOut.err) errors.push(workerOut.err);
       if (relayOut && relayOut.err) errors.push(relayOut.err);
+      var other = (best === wRes) ? relayOut : workerOut;
+      if (other && other.ok && other.res && other.res.errors) {
+        errors = errors.concat(other.res.errors);
+      }
 
       if (!best) {
         result = {

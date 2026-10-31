@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.6.3 — the logs can be read, and nothing is lost
+
+The owner turned on Workers Logs, and the first thing the log showed was
+worth having: the Worker gave a seven-item answer from the second feed, and
+the interface put a hundred on the screen anyway — from the relay path in
+the browser, from the visitor's own address. That is v0.6.2 working.
+
+### The Worker's failure was being dropped
+When the relay path won, the Worker's own feed failure — "Google did not
+answer" — was thrown away, because only the winning path's errors were kept.
+So the one thing worth knowing about a search was the one thing that
+disappeared. Every path's failures are kept now.
+
+### A full list deserves no warning
+The warning was tied to "there were errors", so a hundred good results
+arriving through the relay path still wore a warning about the Worker. It is
+tied to the list now: a short list explains itself, a good one says nothing.
+
+### One log line per search
+The Worker had never logged anything, so the dashboard showed Cloudflare's own
+instrumentation and nothing of ours. Each search now logs one line — the
+query, which route answered, how many items it produced, which routes were
+tried, whether it came from the cache, and what failed if anything did:
+
+    ursift search {"q":"...","route":"cors.lol","items":109,"started":[...]}
+
+
 ## v0.6.2 — both paths at once, and the copy that tells the truth
 
 ### The browser asks the relays immediately
