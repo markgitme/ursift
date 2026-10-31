@@ -34,6 +34,17 @@ slower, and the first one to a busy relay can fail outright.
   second feed into it is not. Borrowed from the simple version.
 - **The resolver's dead code went with it** — 1.7 KB of it.
 
+### A third thing, which is about the relays
+The relays rate-limit **per client address**, and a Worker's client address is
+Cloudflare's shared pool — so the Worker's own relay budget is shared with
+every other Worker on the internet. A visitor's browser has a private budget
+instead. That is why the two paths are both worth keeping: the Worker is fast
+when the shared budget has room, and the visitor's own address is the one
+that is reliably free.
+
+It also means testing the Worker spends the same budget the Worker needs.
+Measuring the relays hard is how they get shut out.
+
 ### What did not change
 The honest states. A failed fetch is never an empty result, and an empty
 result is never a failed fetch. Both directions now hold.
