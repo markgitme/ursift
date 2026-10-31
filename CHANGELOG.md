@@ -1,5 +1,44 @@
 # Changelog
 
+## v0.6.0 — what the simple version knew that we had forgotten
+
+The version that worked before was simple: a page that asked
+`api.allorigins.win/get?url=` for the Google News feed and rendered the
+items. It was never broken. Two things in it were right, and we had stopped
+copying them.
+
+**One: it never fetched Google directly.** It fetched Google *through a
+relay*. That is the whole trick. Google's rate limiter works on IP addresses,
+every Cloudflare Worker shares one pool of egress addresses, and Google's
+limiter treats that pool as one extremely busy customer — so a Worker that
+asks Google for itself gets 429s and empty responses. A relay asks from an
+address that is not Cloudflare's, and Google answers it. The direct route was
+measured from a real colo with four different User-Agents: the honest one
+hung at eight seconds, a full Chrome string 503'd at five, `Cloudflare-Workers`
+503'd at seven and a half, `curl/8.0` hung at eight. All four failed, so it
+was never the User-Agent — it was the address.
+
+**Two: it asked for one URL, over and over.** A relay caches by URL, so the
+same request comes back warm and instant. Every new query is a cold fetch:
+slower, and the first one to a busy relay can fail outright.
+
+### What changed
+- **The direct route to Google is gone.** It never worked from the edge, and
+  it spent a request on every single search to a server that would not answer.
+- **Resolving a link to the publisher is gone.** It needed Google's article
+  page and a `batchexecute` call, both fetched straight from the edge — so it
+  never worked either, and every link a visitor reached cost a request for
+  nothing. A Google News link is a wrapper that bounces on to the publisher,
+  and it lands there in under two seconds.
+- **The list is newest first.** The feed is roughly in order; merging a
+  second feed into it is not. Borrowed from the simple version.
+- **The resolver's dead code went with it** — 1.7 KB of it.
+
+### What did not change
+The honest states. A failed fetch is never an empty result, and an empty
+result is never a failed fetch. Both directions now hold.
+
+
 ## v0.5.9 (local, not pushed) — what was actually wrong, and one real bug
 
 **Google rate-limits by IP address, and every Cloudflare Worker shares the

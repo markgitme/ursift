@@ -30,19 +30,16 @@ the three things a browser cannot:
    cannot read it. From Cloudflare's edge it answers in 0.39 s.
 2. **Caches the result** at the edge, so the same query is answered from
    Cloudflare's cache the second time.
-3. **Resolves publisher URLs.** Google News links point at
-   `news.google.com`, which bounces a browser on to the publisher (verified:
-   a Google News item link lands on the publisher's own site in under two
-   seconds). The Worker resolves them in the background, server-side, where
-   it can afford the extra request — and caches the answer per article.
+3. **Never fetches Google directly.** Google rate-limits by IP address, and
+   every Cloudflare Worker shares one pool of egress addresses, so a Worker
+   that asks Google for itself gets 429s and empty responses. The Worker asks
+   a **relay** instead, from an address that is not Cloudflare's, and Google
+   answers it. Measured from a real colo with four User-Agents: all four
+   failed, so it was never the User-Agent — it was the address.
 
-   The links are **not** resolved during the search. Each resolution costs
-   two requests, so resolving a list meant 26 to 80 requests for one search —
-   and that is what made this Worker loud enough for Google to answer
-   Cloudflare's edge with 503. Instead, a link is resolved **when the visitor
-   reaches it**: the pointer rests on it, or it takes focus. One request, for
-   the one article somebody is about to click. If the resolution fails, the
-   Google News link stays, and it works.
+   Google News links point at `news.google.com`, which bounces a browser on
+   to the publisher (verified: a Google News item link lands on the
+   publisher's own site in under two seconds). They are left as they are.
 
 Bing News RSS is the Worker's second opinion, merged server-side. It is thin
 (1–14 items against Google's 84–100) and sometimes a single item, so it never

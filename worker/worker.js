@@ -47,18 +47,33 @@ const RESOLVE_TIMEOUT = 2500;        // resolving one article is a nice-to-have,
  *
  * The cost of the race is two requests to third parties, and still exactly
  * one request to Google. */
-// The direct route answers in 0.13 s when it works, so the two relay routes
-// wait this long before they even start. If Google answers in time — the
-// usual case — not a single request is sent to a third party. The relays are
-// free services run by people, and their limits are shared with everybody
-// else, so they are only spent when the direct route has already failed.
+// The second relay waits this long before it starts, so the first one is
+// given a chance to answer alone. The relays are free services run by
+// people, and their limits are shared with everybody else, so only one is
+// spent when one is enough.
 const FEED_STAGGER = 400;
 
 const FEED_ROUTES = [
-  { name: 'google', delay: 0, timeout: FEED_TIMEOUT, url: (u) => u },
-  { name: 'cors.lol', delay: FEED_STAGGER, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
+  { name: 'cors.lol', delay: 0, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.cors.lol/?url=' + encodeURIComponent(u) },
   { name: 'allorigins', delay: FEED_STAGGER, timeout: RELAY_TIMEOUT, url: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
 ];
+
+/* There is deliberately no direct route to Google.
+ *
+ * It was there first, and it never worked from the edge. Measured from a real
+ * Cloudflare colo, the same feed with four different User-Agents: the honest
+ * one hung at eight seconds, a full Chrome string 503'd at five seconds,
+ * `Cloudflare-Workers` 503'd at seven and a half, and `curl/8.0` hung at
+ * eight. All four failed — so it is not the User-Agent. It is the address:
+ * Google rate-limits by IP, every Worker on the internet shares one pool of
+ * egress addresses, and Google's limiter treats that pool as one extremely
+ * busy customer.
+ *
+ * The relays reach the same feed from addresses that are not Cloudflare's,
+ * which is why they answer and the direct route never did. This is the same
+ * shape as the simple version that worked before: fetch Google through a
+ * relay, from an address that is not a shared cloud one. */
+
 const state = { lastSuccess: null, lastError: null, lastRoute: null };            // resolve at most this many per search
 
 /* ------------------------------------------------------------------ cache */
@@ -278,42 +293,6 @@ function parseFeed(xml, via) {
 
 /* ------------------------------------------------------------------ resolve */
 
-function batchPayload(aid, ts, sg) {
-  const pl = ['garturlreq',
-    [['en-US', 'US', ['FINANCE_TOP_INDICES', 'WEB_TEST_1_0_0'], null, null, 1, 1, 'US:en', null, 180, null, null, null, null, null, 0, null, null, [1608992183, 723341000]],
-      'en-US', 'US', 1, [2, 3, 4, 8], 1, 0, '655000234', 0, 0, null, 0],
-    aid, ts, sg];
-  return JSON.stringify([[['Fbv4je', JSON.stringify(pl), null, 'generic']]]);
-}
-
-async function resolveGoogleLink(googleUrl) {
-  const key = new Request('https://ursift.internal/resolved?u=' + encodeURIComponent(googleUrl.split('?')[0]));
-  const hit = await cacheGet(key);
-  if (hit) return (await hit.json()).url || '';
-
-  const idMatch = googleUrl.match(/\/articles\/([^?]+)/);
-  if (!idMatch) return '';
-  const aid = idMatch[1];
-
-  // Both fetches here get a budget. Google is not reliably reachable from
-  // Cloudflare's edge, and without a timeout a hung fetch hangs the whole
-  // request — and every link a visitor reaches costs one.
-  const html = await fetchText(googleUrl.split('?')[0] + '?oc=5', { timeout: RESOLVE_TIMEOUT });
-  const sg = (html.match(/data-n-a-sg="([^"]+)"/) || [])[1];
-  const ts = (html.match(/data-n-a-ts="([^"]+)"/) || [])[1];
-  if (!sg || !ts) return '';
-
-  const body = 'f.req=' + encodeURIComponent(batchPayload(aid, ts, sg));
-  const txt = await fetchText('https://news.google.com/_/DotsSplashUi/data/batchexecute', { method: 'POST', body, timeout: RESOLVE_TIMEOUT });
-  const m = txt.match(/garturlres\\",\\"(https?:[^\\"]+)/);
-  if (!m) return '';
-
-  await cachePut(key, new Response(JSON.stringify({ url: m[1] }), {
-    headers: { 'Content-Type': 'application/json' },
-  }), RESOLVE_TTL);
-  return m[1];
-}
-
 /* ------------------------------------------------------------------ merge */
 
 function normTitle(t) {
@@ -403,6 +382,14 @@ async function search({ query, mode, sources, region }) {
 
   const items = merge(parseFeed(g.xml, 'google'), parseFeed(b.xml, 'bing'));
 
+  // Newest first. The feed is roughly in order, but merging a second feed
+  // into it is not, and a search engine should lead with the newest thing.
+  items.sort((a, b) => {
+    const ta = a.published ? Date.parse(a.published) : 0;
+    const tb = b.published ? Date.parse(b.published) : 0;
+    return tb - ta;
+  });
+
   const filtered = mode === 'only' && srcs.length
     ? items.filter(it => it.domain && srcs.includes(it.domain))
     : items;
@@ -446,19 +433,16 @@ export default {
       });
     }
 
-    if (url.pathname === '/api/resolve') {
-      const u = url.searchParams.get('u');
-      if (!u || !u.startsWith('https://news.google.com/rss/articles/')) {
-        return json({ url: '' }, 400);
-      }
-      try {
-        const real = await resolveGoogleLink(u);
-        return json({ url: real });
-      } catch (e) {
-        return json({ url: '', error: String(e && e.message || e) }, 502);
-      }
-    }
-
+    /* There is no /api/resolve.
+     *
+     * It used to turn a Google News link into the publisher's own URL, so the
+     * status bar showed `statnews.com` instead of `news.google.com`. It
+     * needed Google's article page and a batchexecute call, both fetched
+     * straight from the edge — and the edge cannot reach Google. So it never
+     * worked, and every link a visitor reached cost a request for nothing.
+     *
+     * The Google News link is a wrapper that bounces on to the publisher: it
+     * works, and it lands there in under two seconds. */
     if (url.pathname === '/api/search') {
       const query = url.searchParams.get('q') || '';
       const mode = url.searchParams.get('mode') || 'all';
