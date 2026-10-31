@@ -118,6 +118,12 @@ tools/smoke.sh          runs the real Worker and asks it real questions
 tools/browser-test.py   drives the interface in a real browser
 tools/bake_snapshot.py  historic: baked the old snapshot, no longer used
 build.sh                stages site/ -> build/
+docs/notes/             the working notes — decisions, measurements and traps
+  README.md             index: what to read before what
+  product.md            what the owner wanted, the scope drift, the next slice
+  project-state.md      layout, naming, the three backends, the hard-won rules
+  worker.md             the live Worker, the edge/Google problem, the tests
+  data-sources.md       Google News RSS, the operators, the verified endpoints
 ```
 
 ## Build
@@ -137,3 +143,19 @@ zip -r ../output/ursift-vX.Y.Z-$(date +%F).zip site worker README.md CHANGELOG.m
   *run*. The first version of the Worker was deployed without ever being run.
 - **The snapshot is a fallback, never a default** — and as of v0.4.0 there is
   no snapshot at all.
+
+## Working notes
+
+`docs/notes/` holds the reasoning behind the code — the decisions made once and
+not to be re-litigated, the numbers that were measured so they do not have to
+be measured again, and the traps that each cost real time.
+
+| File | Read it before |
+|---|---|
+| `docs/notes/product.md` | touching the project — what the owner actually wants (the saved layer, not the search box), the scope drift, and the next slice |
+| `docs/notes/project-state.md` | changing structure — the layout, the naming, the three data backends, the verified feed facts |
+| `docs/notes/worker.md` | deploying or debugging the Worker — why Cloudflare's edge and Google do not get along, and the tests that guard it |
+| `docs/notes/data-sources.md` | touching the source layer — Google News RSS, its operators, the verified free endpoints, the source modes |
+
+They live in the repository so they survive a new chat: clone the repo and read
+the file that matches what you are about to do.
