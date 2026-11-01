@@ -10,8 +10,18 @@
 > **These notes are public and readable without any credentials.** The parts
 > that are about the owner rather than the code — the product he actually
 > wants, the open decisions and the domain position — live in the owner's
-> **private** notes repository, under `ursift/docs/notes/`. This repository is
-> the engineering half; that one is the rest.
+> **private** notes repository, `markgitme/projectnotes`, under
+> `ursift/docs/notes/`. This repository is the engineering half; that one is
+> the rest.
+>
+> To read the private half:
+> ```bash
+> AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN_NOTES" | base64 -w0)
+> git -c "http.https://github.com/.extraheader=Authorization: Basic $AUTH" \
+>     clone https://github.com/markgitme/projectnotes.git
+> ```
+> **If that clone fails, say so and stop** — do not carry on from a summary as
+> if the notes had been read.
 
 ## The one thing to read first
 

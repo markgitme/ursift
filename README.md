@@ -159,5 +159,5 @@ be measured again, and the traps that each cost real time.
 They live in the repository so they survive a new chat: clone the repo and read
 the file that matches what you are about to do. **These notes are public and
 need no credentials.** The parts that are about the owner rather than the code
-are kept in a separate private repository; this one points there rather than
-duplicating them.
+are kept in a separate private repository — `markgitme/projectnotes`; this one
+points there rather than duplicating them.
