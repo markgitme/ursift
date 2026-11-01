@@ -118,11 +118,8 @@ tools/smoke.sh          runs the real Worker and asks it real questions
 tools/browser-test.py   drives the interface in a real browser
 tools/bake_snapshot.py  historic: baked the old snapshot, no longer used
 build.sh                stages site/ -> build/
-docs/notes/             the working notes — the public, engineering half
-  README.md             index: what to read before what
-  project-state.md      layout, naming, the three backends, the hard-won rules
-  worker.md             the live Worker, the edge/Google problem, the tests
-  data-sources.md       Google News RSS, the operators, the verified endpoints
+docs/notes/             a pointer to the working notes, which live in a private repo
+  README.md             where the notes are, how to read them, what is in them
 ```
 
 ## Build
@@ -145,19 +142,19 @@ zip -r ../output/ursift-vX.Y.Z-$(date +%F).zip site worker README.md CHANGELOG.m
 
 ## Working notes
 
-`docs/notes/` holds the reasoning behind the code — the decisions made once and
-not to be re-litigated, the numbers that were measured so they do not have to
-be measured again, and the traps that each cost real time.
+The notes that used to live in a chat assistant's memory now live in a
+**private repository**, `markgitme/projectnotes`, under `ursift/docs/notes/` —
+the same paths they occupy here, so the mapping is one to one.
 
-| File | Read it before |
-|---|---|
-| `docs/notes/product.md` | touching the project — what the owner actually wants (the saved layer, not the search box), the scope drift, and the next slice — **private, in the owner's notes repository** |
-| `docs/notes/project-state.md` | changing structure — the layout, the naming, the three data backends, the verified feed facts |
-| `docs/notes/worker.md` | deploying or debugging the Worker — why Cloudflare's edge and Google do not get along, and the tests that guard it |
-| `docs/notes/data-sources.md` | touching the source layer — Google News RSS, its operators, the verified free endpoints, the source modes |
+```bash
+AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN_NOTES" | base64 -w0)
+git -c "http.https://github.com/.extraheader=Authorization: Basic $AUTH" \
+    clone https://github.com/markgitme/projectnotes.git
+```
 
-They live in the repository so they survive a new chat: clone the repo and read
-the file that matches what you are about to do. **These notes are public and
-need no credentials.** The parts that are about the owner rather than the code
-are kept in a separate private repository — `markgitme/projectnotes`; this one
-points there rather than duplicating them.
+They cover the product the owner actually wants, the layout and the hard-won
+rules, the live Worker and the edge/Google problem, and the verified data
+sources.
+
+**`docs/notes/README.md` here is a pointer, not a copy.** If the clone fails,
+say so and stop — do not carry on from a summary as if the notes had been read.
