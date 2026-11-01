@@ -21,11 +21,6 @@ nouns, by contrast, were almost universally taken.
 The runner-up was **Ur Comb**; "comb" was rejected because it reads as a *hair*
 comb in isolation.
 
-**Domain status as of 2026-10-30 — `ursift.com` is FREE**, and so are
-`ursift.app`, `ursift.tools`, `ursift.site`, `ursift.is`, `ursift.net`,
-`ursift.dev`, `ursift.xyz`. RDAP shows "not registered"; registrability still
-needs a registrar checkout. **Do not buy one until Mark says so.**
-
 ### The rename checklist — apply in ONE pass when Mark gives a build trigger
 
 | What | Current | Becomes |
@@ -148,15 +143,13 @@ answer (the second feed alone, 4–12 items) does *not* stop the other path.
    `undefined` on the second call; that reached the interface as "no result at
    all" and the whole search silently became an error panel.
 
-## Open decisions for Mark
+## The owner's own notes (private)
 
-- The default period: Latest (no filter) is what shipped; This Week was the
-  other option.
-- Whether to buy a domain and to enable Cloudflare KV for durable health
-  state.
-- The two-week self-use test before showing anyone else.
-- The per-watch period filter, per-watch source selection at add time, and
-  per-item ignore retention — all still open from the first design session.
+**The open decisions, the domain position and the product definition are not
+in this file.** They are in the owner's private notes repository, under
+`ursift/docs/notes/` — `owner-notes.md` for the decisions and the domain,
+`product.md` for the product he actually wants. Everything here is about the
+code.
 
 ## Bugs already found and fixed
 

@@ -6,19 +6,25 @@
 > **How to use this folder:** clone the repo and read the file that matches what
 > you are about to do. Nothing here is needed to *serve* the site — it is the
 > reasoning, the measurements and the traps behind the code.
+>
+> **These notes are public and readable without any credentials.** The parts
+> that are about the owner rather than the code — the product he actually
+> wants, the open decisions and the domain position — live in the owner's
+> **private** notes repository, under `ursift/docs/notes/`. This repository is
+> the engineering half; that one is the rest.
 
 ## The one thing to read first
 
 **ursift is parked at v0.6.3.** The product the owner actually wants is the
 **saved layer** — your own sources, your own queries, your preferences, all in
-one file you carry — not the search box that was built. Read
-[`product.md`](product.md) before touching anything.
+one file you carry — not the search box that was built. That is in the private
+notes, under `ursift/docs/notes/product.md`; read it before touching anything.
 
 ## The files
 
 | File | Read it before |
 |---|---|
-| [`product.md`](product.md) | touching the project at all — what the owner actually wanted, the scope drift named honestly, the old implementation that still lives in git history, and the next slice |
+| `product.md` *(private)* | touching the project at all — what the owner actually wanted, the scope drift named honestly, the old implementation that still lives in git history, and the next slice — **private, in the owner's notes repository** |
 | [`project-state.md`](project-state.md) | changing structure — the repo layout, the naming and the rename checklist, the three data backends, the verified feed facts, the rules this project learned the hard way, and the open decisions |
 | [`worker.md`](worker.md) | deploying or debugging the Worker — how it failed four times before it worked, why Cloudflare's edge and Google do not get along, and the test tooling that guards it |
 | [`data-sources.md`](data-sources.md) | touching the source layer — Google News RSS and its operators, the verified free endpoints, publisher-URL resolution, the source modes, the grouping cascade and the relay measurements |
